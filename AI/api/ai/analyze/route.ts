@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
-import { grok } from "@/lib/ai-client"
-import { ANALYZE_SYSTEM } from "@/lib/ai-prompts"
-import { extractJson } from "@/lib/ai-parser"
-import type { ReviewAnalysis, AnalyzeRequest } from "@/lib/ai-schemas"
+import { grok } from "@/AI/lib/ai-client"
+import { ANALYZE_SYSTEM } from "@/AI/lib/ai-prompts"
+import { extractJson } from "@/AI/lib/ai-parser"
+import type { ReviewAnalysis, AnalyzeRequest } from "@/AI/lib/ai-schemas"
 
 const MIN_LENGTH = 2
 

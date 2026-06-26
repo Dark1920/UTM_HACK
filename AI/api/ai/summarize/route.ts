@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
-import { grok } from "@/lib/ai-client"
-import { SUMMARIZE_SYSTEM } from "@/lib/ai-prompts"
-import { extractJson } from "@/lib/ai-parser"
-import type { Summary, SummarizeRequest } from "@/lib/ai-schemas"
+import { grok } from "@/AI/lib/ai-client"
+import { SUMMARIZE_SYSTEM } from "@/AI/lib/ai-prompts"
+import { extractJson } from "@/AI/lib/ai-parser"
+import type { Summary, SummarizeRequest } from "@/AI/lib/ai-schemas"
 
 const EMPTY_RESULT: Summary = {
   resume: "Aucun commentaire significatif fourni.",
