@@ -1,0 +1,15 @@
+export { authService } from './auth.service';
+export { commerceService } from './commerce.service';
+export type { CommerceFilters } from './commerce.service';
+export { commentaireService } from './commentaire.service';
+export { uploadService } from './upload.service';
+export type { UploadResult } from './upload.service';
+export { geolocationService } from './geolocation.service';
+export type { Coordinates, GeolocationResult } from './geolocation.service';
+export { groqService } from './groq.service';
+export { whatsappService } from './whatsapp.service';
+export { favorisService } from './favoris.service';
+export { adminService } from './admin.service';
+export type { AdminStats } from './admin.service';
+export { statistiquesService } from './statistiques.service';
+export type { StatistiqueItem, PeriodStats } from './statistiques.service';

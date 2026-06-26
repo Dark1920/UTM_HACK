@@ -1,0 +1,93 @@
+"use client";
+
+import { CommerceCard } from "./commerce-card";
+import { Skeleton } from "@/components/ui";
+import { SearchX } from "lucide-react";
+import type { Commerce } from "@/types";
+
+interface CommerceListProps {
+  commerces: Commerce[];
+  distances?: Record<string, number>;
+  loading?: boolean;
+  totalResults?: number;
+}
+
+function CardSkeleton() {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <Skeleton variant="rectangle" height={192} />
+      <div className="p-4 space-y-3">
+        <div className="flex items-start justify-between gap-2">
+          <Skeleton variant="text" height={20} className="w-2/3" />
+          <Skeleton variant="text" height={20} className="w-16" />
+        </div>
+        <Skeleton variant="text" height={16} className="w-1/3" />
+        <Skeleton variant="text" height={16} className="w-3/4" />
+        <div className="flex gap-2">
+          <Skeleton variant="text" height={32} className="w-20" />
+          <Skeleton variant="text" height={32} className="w-24" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function CommerceList({
+  commerces,
+  distances = {},
+  loading = false,
+  totalResults,
+}: CommerceListProps) {
+  if (loading) {
+    return (
+      <div>
+        <div className="mb-4">
+          <Skeleton variant="text" height={16} className="w-32" />
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <CardSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (commerces.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-slate-100">
+          <SearchX className="h-10 w-10 text-slate-400" />
+        </div>
+        <h3 className="mb-2 text-lg font-semibold text-slate-900">
+          Aucun résultat trouvé
+        </h3>
+        <p className="max-w-sm text-sm text-slate-500">
+          Essayez de modifier vos filtres ou votre recherche pour trouver
+          l&apos;artisan que vous cherchez.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {totalResults != null && (
+        <p className="mb-4 text-sm text-slate-500">
+          <span className="font-medium text-slate-700">{totalResults}</span>{" "}
+          résultat{totalResults > 1 ? "s" : ""}
+        </p>
+      )}
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {commerces.map((commerce) => (
+          <CommerceCard
+            key={commerce.id}
+            commerce={commerce}
+            distance={distances[commerce.id]}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
