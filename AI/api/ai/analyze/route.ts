@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { grok } from "@/AI/lib/ai-client"
+import { ai } from "@/AI/lib/ai-client"
 import { ANALYZE_SYSTEM } from "@/AI/lib/ai-prompts"
 import { extractJson } from "@/AI/lib/ai-parser"
 import type { ReviewAnalysis, AnalyzeRequest } from "@/AI/lib/ai-schemas"
@@ -7,7 +7,7 @@ import type { ReviewAnalysis, AnalyzeRequest } from "@/AI/lib/ai-schemas"
 const MIN_LENGTH = 2
 
 function preValidate(commentaire: string): boolean {
-  const cleaned = commentary.trim()
+  const cleaned = commentaire.trim()
   if (cleaned.length < MIN_LENGTH) return false
   if ((cleaned.match(/#/g) || []).length > cleaned.length * 0.5) return false
   return true
@@ -36,8 +36,8 @@ export async function POST(req: Request) {
       return NextResponse.json(DEFAULT_RESULT, { status: 200 })
     }
 
-    const response = await grok.chat.completions.create({
-      model: process.env.GROK_MODEL || "grok-beta",
+    const response = await ai.chat.completions.create({
+      model: process.env.AI_MODEL || "llama-3.1-8b-instant",
       messages: [
         { role: "system", content: ANALYZE_SYSTEM },
         { role: "user", content: `Analyse ce commentaire :\n\n${commentaire}` },
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
 
     const content = response.choices[0]?.message?.content
     if (!content) {
-      return NextResponse.json({ error: "Reponse vide de GROK" }, { status: 502 })
+      return NextResponse.json({ error: "Reponse vide du LLM" }, { status: 502 })
     }
 
     const parsed = extractJson(content) as ReviewAnalysis

@@ -11,12 +11,24 @@ Tu te bases uniquement sur son contenu.
 Le commentaire peut contenir :
 - fautes d'orthographe
 - langage SMS
-- emojis
+- emojis seuls ou en texte
 - repetitions de lettres
 - francais approximatif
 - melange francais/anglais
 
 Analyse le sens du commentaire, pas sa qualite d'ecriture.
+
+----------------------------------------
+
+EMOJIS
+
+Les emojis expriment un avis sur le commerce.
+Interprete-les comme des indicateurs de sentiment :
+- Un emoji positif (sourire, pouce en l'air, etoile, coeur, feu, force, check) = satisfaction
+- Un emoji negatif (pouce en bas, coeur casse, visage en colere, croix, interdit) = insatisfaction
+- Un seul emoji suffit pour evaluer le commentaire.
+- Un commentaire contenant uniquement des emojis positifs est pertinent.
+- Un commentaire contenant uniquement des emojis negatifs est pertinent.
 
 ----------------------------------------
 
@@ -60,7 +72,9 @@ Le commentaire est non pertinent si :
 - il contient uniquement de la publicite
 - il demande de modifier la note
 - il contient uniquement des liens
-- il est vide
+- il est vide (aucun caractere, emoji ou texte)
+
+Un commentaire contenant uniquement des emojis est PERTINENT si les emojis expriment un avis.
 
 Si le commentaire est non pertinent :
 - pertinent = false

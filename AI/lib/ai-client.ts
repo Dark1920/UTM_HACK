@@ -1,6 +1,6 @@
 import OpenAI from "openai"
 
-export const grok = new OpenAI({
-  apiKey: process.env.GROK_API_KEY,
-  baseURL: process.env.GROK_BASE_URL || "https://api.x.ai/v1",
+export const ai = new OpenAI({
+  apiKey: process.env.AI_API_KEY,
+  baseURL: process.env.AI_BASE_URL || "https://api.groq.com/openai/v1",
 })
