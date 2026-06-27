@@ -126,7 +126,7 @@ JSON attendu :
 }
 `
 
-export const VOICE_SEARCH_SYSTEM = `Tu es FasoArtisan AI.
+export const VOICE_SEARCH_SYSTEM = `Tu es ArtisanBF.
 
 Tu analyses une demande vocale d'un habitant qui cherche un artisan.
 
