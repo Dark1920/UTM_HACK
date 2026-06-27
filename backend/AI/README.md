@@ -8,11 +8,13 @@ FasoArtisan AI est le module d'intelligence artificielle de la plateforme FasoAr
 
 | Composant | Technologie |
 |---|---|
-| Framework | Next.js (TypeScript) |
+| Framework | Next.js 16 App Router (TypeScript) |
 | LLM | Llama 3.1 8B (via Groq) |
 | Speech-to-Text | Whisper Large v3 (via Groq) |
 | Client API | OpenAI SDK (compatible Groq) |
 | Langage | 100% Francais |
+
+> **Note**: Ce module est une application Next.js avec des route handlers, PAS un serveur Express. Les routes sont dans `AI/api/ai/` et re-exportees via `app/api/ai/` pour le routing Next.js.
 
 ## Fonctionnalites
 

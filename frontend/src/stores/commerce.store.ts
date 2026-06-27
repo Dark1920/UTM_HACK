@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { Commerce } from '@/types/commerce';
 import type { FiltreRecherche } from '@/types/common';
-import { mockCommerces } from '@/lib/mock-data';
+import { commerceService } from '@/services/commerce.service';
 
 interface CommerceState {
   commerces: Commerce[];
@@ -12,6 +12,7 @@ interface CommerceState {
   selectCommerce: (commerce: Commerce | null) => void;
   setFilters: (filters: Partial<FiltreRecherche>) => void;
   filteredCommerces: () => Commerce[];
+  loadCommerces: (filters?: Parameters<typeof commerceService.getAll>[0]) => Promise<void>;
 }
 
 export const useCommerceStore = create<CommerceState>((set, get) => ({
@@ -26,6 +27,17 @@ export const useCommerceStore = create<CommerceState>((set, get) => ({
 
   setFilters: (newFilters) =>
     set((state) => ({ filters: { ...state.filters, ...newFilters } })),
+
+  loadCommerces: async (filters) => {
+    set({ isLoading: true });
+    try {
+      const commerces = await commerceService.getAll(filters);
+      set({ commerces, isLoading: false });
+    } catch (error) {
+      console.error('Erreur chargement commerces:', error);
+      set({ isLoading: false });
+    }
+  },
 
   filteredCommerces: () => {
     const { commerces, filters } = get();
@@ -71,7 +83,3 @@ export const useCommerceStore = create<CommerceState>((set, get) => ({
     return result;
   },
 }));
-
-export function loadMockCommerces() {
-  useCommerceStore.getState().setCommerces(mockCommerces);
-}

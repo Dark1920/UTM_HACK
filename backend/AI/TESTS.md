@@ -100,76 +100,76 @@
 ### Lancer le serveur
 
 ```bash
-npm run dev
+npm run dev    # backend demarre sur le port 3001
 ```
 
 ### Pipeline Analyse
 
 ```powershell
 # Commentaire standard positif
-Invoke-RestMethod -Uri "http://localhost:3000/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"Ce mecanicien est tres bon, il a repare ma moto en 2h"}'
+Invoke-RestMethod -Uri "http://localhost:3001/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"Ce mecanicien est tres bon, il a repare ma moto en 2h"}'
 
 # Commentaire standard negatif
-Invoke-RestMethod -Uri "http://localhost:3000/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"Trop cher et il a abime ma voiture, je ne recommande pas"}'
+Invoke-RestMethod -Uri "http://localhost:3001/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"Trop cher et il a abime ma voiture, je ne recommande pas"}'
 
 # Spam / publicite
-Invoke-RestMethod -Uri "http://localhost:3000/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"achetez mes produits sur www.spam.com"}'
+Invoke-RestMethod -Uri "http://localhost:3001/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"achetez mes produits sur www.spam.com"}'
 
 # Trop court
-Invoke-RestMethod -Uri "http://localhost:3000/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"bonjour"}'
+Invoke-RestMethod -Uri "http://localhost:3001/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"bonjour"}'
 
 # Un point
-Invoke-RestMethod -Uri "http://localhost:3000/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"."}'
+Invoke-RestMethod -Uri "http://localhost:3001/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"."}'
 
 # Fautes d orthographe
-Invoke-RestMethod -Uri "http://localhost:3000/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"c tro bon ce mecanisien il a reprrer ma moto vittement"}'
+Invoke-RestMethod -Uri "http://localhost:3001/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"c tro bon ce mecanisien il a reprrer ma moto vittement"}'
 
 # Melange francais/anglais
-Invoke-RestMethod -Uri "http://localhost:3000/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"this mecanicien is very good, il a fait un bon travail, fast delivery"}'
+Invoke-RestMethod -Uri "http://localhost:3001/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"this mecanicien is very good, il a fait un bon travail, fast delivery"}'
 
 # Repetitions de lettres
-Invoke-RestMethod -Uri "http://localhost:3000/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"trooooooop biennnn ce gars laaa, je recommande grave"}'
+Invoke-RestMethod -Uri "http://localhost:3001/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"trooooooop biennnn ce gars laaa, je recommande grave"}'
 
 # Sentiment mixte
-Invoke-RestMethod -Uri "http://localhost:3000/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"👍 mais trop cher"}'
+Invoke-RestMethod -Uri "http://localhost:3001/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"👍 mais trop cher"}'
 
 # Emojis positifs seuls
-Invoke-RestMethod -Uri "http://localhost:3000/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"🔥"}'
+Invoke-RestMethod -Uri "http://localhost:3001/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"🔥"}'
 
 # Emojis negatifs seuls
-Invoke-RestMethod -Uri "http://localhost:3000/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"👎👎👎"}'
+Invoke-RestMethod -Uri "http://localhost:3001/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"👎👎👎"}'
 
 # Coeur casse
-Invoke-RestMethod -Uri "http://localhost:3000/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"💔💔"}'
+Invoke-RestMethod -Uri "http://localhost:3001/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"💔💔"}'
 
 # Etoiles
-Invoke-RestMethod -Uri "http://localhost:3000/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"⭐⭐⭐⭐⭐"}'
+Invoke-RestMethod -Uri "http://localhost:3001/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"⭐⭐⭐⭐⭐"}'
 
 # Note courte
-Invoke-RestMethod -Uri "http://localhost:3000/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"5/5"}'
+Invoke-RestMethod -Uri "http://localhost:3001/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"5/5"}'
 
 # Commentaire long
-Invoke-RestMethod -Uri "http://localhost:3000/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"Ce mecanicien est vraiment tres bien, il a repare ma moto en 2h seulement, le prix etait correct, l accueil etait sympathique, je recommande vivement a tous mes amis, c est le meilleur mecanicien du quartier"}'
+Invoke-RestMethod -Uri "http://localhost:3001/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"Ce mecanicien est vraiment tres bien, il a repare ma moto en 2h seulement, le prix etait correct, l accueil etait sympathique, je recommande vivement a tous mes amis, c est le meilleur mecanicien du quartier"}'
 
 # Texte + emojis
-Invoke-RestMethod -Uri "http://localhost:3000/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"bon mecanicien 👍🔥💪"}'
+Invoke-RestMethod -Uri "http://localhost:3001/api/ai/analyze" -Method Post -ContentType "application/json" -Body '{"commentaire":"bon mecanicien 👍🔥💪"}'
 ```
 
 ### Pipeline Resume
 
 ```powershell
 # Resume de commentaires
-Invoke-RestMethod -Uri "http://localhost:3000/api/ai/summarize" -Method Post -ContentType "application/json" -Body '{"commentaires":["bon travail","trop cher","je recommande","accueil sympa"]}'
+Invoke-RestMethod -Uri "http://localhost:3001/api/ai/summarize" -Method Post -ContentType "application/json" -Body '{"commentaires":["bon travail","trop cher","je recommande","accueil sympa"]}'
 ```
 
 ### Pipeline Vocal
 
 ```powershell
 # Speech-to-text (transcription audio)
-curl.exe -X POST http://localhost:3000/api/ai/speech-to-text -F "audio=@D:\test_transcript.mpeg"
+curl.exe -X POST http://localhost:3001/api/ai/speech-to-text -F "audio=@D:\test_transcript.mpeg"
 
 # Voice-search (recherche d artisan par la voix)
-curl.exe -X POST http://localhost:3000/api/ai/voice-search -F "audio=@C:\Users\HP 2025\Music\test_vosea.m4a"
+curl.exe -X POST http://localhost:3001/api/ai/voice-search -F "audio=@C:\Users\HP 2025\Music\test_vosea.m4a"
 ```
 
 ### Tests Voice-Search - Resultats

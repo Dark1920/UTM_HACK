@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Search, ArrowRight, ArrowUpRight, Star, MapPin, Phone } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
-import { mockCommerces, mockCategories } from '@/lib/mock-data';
+import { commerceService } from '@/services/commerce.service';
+import { categorieService } from '@/services/categorie.service';
 import { CommercePhoto } from '@/components/commerces/commerce-photo';
+import type { Commerce, Categorie } from '@/types/commerce';
 
 const categoryIcons: Record<string, string> = {
   'cat-1': '🔧',
@@ -44,8 +46,8 @@ const steps = [
   },
 ];
 
-function PreviewCard() {
-  const sample = mockCommerces.slice(0, 3);
+function PreviewCard({ commerces }: { commerces: Commerce[] }) {
+  const sample = commerces.slice(0, 3);
   return (
     <div className="rounded-lg border border-stone-200 bg-white p-2">
       <div className="flex items-center justify-between px-3 py-2.5 border-b border-stone-100">
@@ -76,7 +78,15 @@ function PreviewCard() {
 export default function HomePage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
-  const featuredCommerces = mockCommerces.slice(0, 6);
+  const [commerces, setCommerces] = useState<Commerce[]>([]);
+  const [categories, setCategories] = useState<Categorie[]>([]);
+
+  useEffect(() => {
+    commerceService.getAll().then(setCommerces).catch(console.error);
+    categorieService.getAll().then(setCategories).catch(console.error);
+  }, []);
+
+  const featuredCommerces = commerces.slice(0, 6);
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -153,7 +163,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <PreviewCard />
+            <PreviewCard commerces={commerces} />
           </div>
         </div>
       </section>
@@ -190,7 +200,7 @@ export default function HomePage() {
             </Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-            {mockCategories.map((cat) => (
+            {categories.map((cat) => (
               <Link
                 key={cat.id}
                 href={`${ROUTES.ANNUAIRE}?categorie=${cat.id}`}
@@ -258,7 +268,7 @@ export default function HomePage() {
                 </div>
                 <div className="p-4">
                   <p className="text-xs font-medium uppercase tracking-wide text-stone-400">
-                    {mockCategories.find((c) => c.id === commerce.categorieId)?.nom}
+                    {categories.find((c) => c.id === commerce.categorieId)?.nom}
                   </p>
                   <div className="flex items-center justify-between mt-1">
                     <h3 className="font-medium text-stone-900 group-hover:underline">{commerce.nom}</h3>

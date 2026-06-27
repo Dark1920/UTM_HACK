@@ -1,25 +1,32 @@
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_API_KEY = process.env.NEXT_PUBLIC_GROQ_API_KEY || '';
-
-export async function analyseSentiment(texte: string): Promise<{ note: number; sentiment: string }> {
-  // Mock pour le prototype
-  return {
-    note: Math.floor(Math.random() * 3) + 3,
-    sentiment: texte.length > 50 ? 'positif' : 'neutre',
-  };
+export async function analyseSentiment(texte: string): Promise<{ note: number; sentiment: string; pertinent: boolean }> {
+  const res = await fetch('/api/ai/analyze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ commentaire: texte }),
+  });
+  if (!res.ok) throw new Error('Erreur analyse IA');
+  return res.json();
 }
 
-export async function genererResume(avis: string[]): Promise<string> {
-  // Mock pour le prototype
-  if (avis.length === 0) return 'Aucun avis pour le moment.';
-  return `Les clients apprécient la qualité du travail et les tarifs abordables. ${avis.length} avis au total.`;
+export async function genererResume(avis: string[]): Promise<{ resume: string; points_forts: string[]; points_faibles: string[] }> {
+  if (avis.length === 0) return { resume: 'Aucun avis pour le moment.', points_forts: [], points_faibles: [] };
+  const res = await fetch('/api/ai/summarize', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ commentaires: avis }),
+  });
+  if (!res.ok) throw new Error('Erreur résumé IA');
+  return res.json();
 }
 
 export async function detecterSpam(texte: string): Promise<{ estSpam: boolean; raison?: string }> {
-  // Mock pour le prototype
-  const spamPatterns = [/\b(cliquez ici|gagnez|gratuit|offre speciale)\b/i];
-  for (const pattern of spamPatterns) {
-    if (pattern.test(texte)) return { estSpam: true, raison: 'Contenu détecté comme spam' };
-  }
+  const res = await fetch('/api/ai/analyze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ commentaire: texte }),
+  });
+  if (!res.ok) return { estSpam: false };
+  const data = await res.json();
+  if (!data.pertinent) return { estSpam: true, raison: data.raison || 'Contenu détecté comme spam' };
   return { estSpam: false };
 }

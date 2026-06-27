@@ -1,18 +1,15 @@
 'use client';
 
 import { useCallback } from 'react';
-import { useCommerceStore, loadMockCommerces } from '@/stores/commerce.store';
+import { useCommerceStore } from '@/stores/commerce.store';
+import { commerceService } from '@/services/commerce.service';
 import type { Commerce, CreateCommerceData } from '@/types/commerce';
-import { mockCommerces } from '@/lib/mock-data';
 
 export function useCommerce() {
   const commerces = useCommerceStore((s) => s.commerces);
   const selectedCommerce = useCommerceStore((s) => s.selectedCommerce);
   const isLoading = useCommerceStore((s) => s.isLoading);
-
-  const loadCommerces = useCallback(() => {
-    useCommerceStore.getState().setCommerces(mockCommerces);
-  }, []);
+  const loadCommerces = useCommerceStore((s) => s.loadCommerces);
 
   const selectCommerce = useCallback((commerce: Commerce | null) => {
     useCommerceStore.getState().selectCommerce(commerce);
@@ -20,21 +17,9 @@ export function useCommerce() {
 
   const createCommerce = useCallback(
     async (data: CreateCommerceData): Promise<Commerce> => {
-      const newCommerce: Commerce = {
-        id: `com-${Date.now()}`,
-        ...data,
-        artisanId: 'art-1',
-        photos: [],
-        note: 0,
-        nombreAvis: 0,
-        nombreVues: 0,
-        nombreAppels: 0,
-        nombreClicsWhatsApp: 0,
-        estPublic: true,
-        dateCreation: new Date().toISOString(),
-        dateModification: new Date().toISOString(),
-      };
       const store = useCommerceStore.getState();
+      const user = (await import('@/stores/auth.store')).useAuthStore.getState().user;
+      const newCommerce = await commerceService.create(data, user?.id || '');
       store.setCommerces([...store.commerces, newCommerce]);
       return newCommerce;
     },
@@ -43,14 +28,8 @@ export function useCommerce() {
 
   const updateCommerce = useCallback(
     async (id: string, data: Partial<CreateCommerceData>): Promise<Commerce> => {
+      const updated = await commerceService.update(id, data);
       const store = useCommerceStore.getState();
-      const existing = store.commerces.find((c) => c.id === id);
-      if (!existing) throw new Error('Commerce not found');
-      const updated: Commerce = {
-        ...existing,
-        ...data,
-        dateModification: new Date().toISOString(),
-      };
       store.setCommerces(
         store.commerces.map((c) => (c.id === id ? updated : c))
       );
@@ -60,6 +39,7 @@ export function useCommerce() {
   );
 
   const deleteCommerce = useCallback(async (id: string) => {
+    await commerceService.delete(id);
     const store = useCommerceStore.getState();
     store.setCommerces(store.commerces.filter((c) => c.id !== id));
   }, []);

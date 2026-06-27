@@ -1,9 +1,5 @@
 import { NextResponse } from "next/server"
-<<<<<<< HEAD
 import { ai } from "@/backend/AI/lib/ai-client"
-=======
-import { getGrokClient } from "@/AI/lib/ai-client"
->>>>>>> 66b021b (Fix prompts and AI routes)
 import { SUMMARIZE_SYSTEM } from "@/backend/AI/lib/ai-prompts"
 import { extractJson } from "@/backend/AI/lib/ai-parser"
 import type { Summary, SummarizeRequest } from "@/backend/AI/lib/ai-schemas"
@@ -59,13 +55,8 @@ export async function POST(req: Request) {
       .map((c, i) => `${i + 1}. ${c}`)
       .join("\n")
 
-<<<<<<< HEAD
     const response = await ai.chat.completions.create({
       model: process.env.AI_MODEL || "llama-3.1-8b-instant",
-=======
-    const response = await getGrokClient().chat.completions.create({
-      model: process.env.GROK_MODEL || "grok-beta",
->>>>>>> 66b021b (Fix prompts and AI routes)
       messages: [
         { role: "system", content: SUMMARIZE_SYSTEM },
         { role: "user", content: `Commentaires :\n\n${numbered}` },

@@ -1,37 +1,36 @@
 export const groqService = {
-  async analyseSentiment(texte: string): Promise<{ note: number; confiance: number }> {
-    await new Promise(r => setTimeout(r, 600));
-    return {
-      note: Math.floor(Math.random() * 5) + 1,
-      confiance: Math.random() * 0.4 + 0.6,
-    };
+  async analyseSentiment(texte: string): Promise<{ note: number; sentiment: string; pertient: boolean; criteres: { qualite: number; professionnalisme: number; rapidite: number; prix: number }; points_forts: string[]; points_faibles: string[] }> {
+    const res = await fetch('/api/ai/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ commentaire: texte }),
+    });
+    if (!res.ok) throw new Error('Erreur analyse IA');
+    return res.json();
   },
 
-  async genererResume(texte: string): Promise<string> {
-    await new Promise(r => setTimeout(r, 700));
-    const resumes = [
-      'Client satisfait du service rendu.',
-      'Travail de qualité effectué dans les délais.',
-      'Recommande vivement cet artisan.',
-      'Bon rapport qualité-prix.',
-      'Intervention rapide et professionnelle.',
-    ];
-    return resumes[Math.floor(Math.random() * resumes.length)];
+  async genererResume(textes: string[]): Promise<{ resume: string; points_forts: string[]; points_faibles: string[] }> {
+    const res = await fetch('/api/ai/summarize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ commentaires: textes }),
+    });
+    if (!res.ok) throw new Error('Erreur résumé IA');
+    return res.json();
   },
 
   async detecterSpam(texte: string): Promise<{ estSpam: boolean; score: number }> {
-    await new Promise(r => setTimeout(r, 400));
-    return {
-      estSpam: Math.random() < 0.05,
-      score: Math.random() * 0.3,
-    };
+    const res = await fetch('/api/ai/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ commentaire: texte }),
+    });
+    if (!res.ok) return { estSpam: false, score: 0 };
+    const data = await res.json();
+    return { estSpam: !data.pertinent, score: data.note ? (5 - data.note) / 5 : 0 };
   },
 
-  async repondreAvis(avis: string, note: number): Promise<string> {
-    await new Promise(r => setTimeout(r, 500));
-    if (note >= 4) {
-      return 'Merci beaucoup pour votre avis positif ! Nous sommes ravis de vous avoir satisfait.';
-    }
-    return 'Merci pour votre retour. Nous prenons note de vos remarques pour nous améliorer.';
+  async repondreAvis(_avis: string, _note: number): Promise<string> {
+    return 'Merci pour votre avis.';
   },
 };

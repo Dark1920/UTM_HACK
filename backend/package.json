@@ -8,8 +8,7 @@
     "lib": "lib"
   },
   "scripts": {
-    "dev": "next dev",
-    "ai": "node AI/server.js",
+    "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -26,8 +25,6 @@
   },
   "homepage": "https://github.com/Dark1920/UTM_HACK#readme",
   "dependencies": {
-    "cors": "^2.8.6",
-    "express": "^5.2.1",
     "next": "^16.2.9",
     "openai": "^6.45.0",
     "react": "^19.2.7",

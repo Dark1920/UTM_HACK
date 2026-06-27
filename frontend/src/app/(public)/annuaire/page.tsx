@@ -1,21 +1,22 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Search, MapPin, Star, Phone, ChevronLeft, ChevronRight, Map as MapIcon, List } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
-import { mockCommerces, mockCategories } from '@/lib/mock-data';
+import { commerceService } from '@/services/commerce.service';
+import { categorieService } from '@/services/categorie.service';
 import { CommercePhoto } from '@/components/commerces/commerce-photo';
 import MapLeaflet from '@/components/maps/map-leaflet';
-import type { Commerce } from '@/types/commerce';
+import type { Commerce, Categorie } from '@/types/commerce';
 
 const cities = ['Toutes', 'Ouagadougou', 'Bobo-Dioulasso', 'Koudougou', 'Banfora', 'Ouahigouya'];
 const ratings = [0, 3, 3.5, 4, 4.5];
 const ITEMS_PER_PAGE = 9;
 
-function ResultCard({ commerce }: { commerce: Commerce }) {
-  const category = mockCategories.find((c) => c.id === commerce.categorieId);
+function ResultCard({ commerce, categories }: { commerce: Commerce; categories: Categorie[] }) {
+  const category = categories.find((c) => c.id === commerce.categorieId);
   return (
     <Link
       href={ROUTES.COMMERCE(commerce.id)}
@@ -61,9 +62,16 @@ export default function AnnuairePage() {
   const [minRating, setMinRating] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [showMap, setShowMap] = useState(false);
+  const [commerces, setCommerces] = useState<Commerce[]>([]);
+  const [categories, setCategories] = useState<Categorie[]>([]);
+
+  useEffect(() => {
+    commerceService.getAll().then(setCommerces).catch(console.error);
+    categorieService.getAll().then(setCategories).catch(console.error);
+  }, []);
 
   const filtered = useMemo(() => {
-    return mockCommerces.filter((c) => {
+    return commerces.filter((c) => {
       if (!c.estPublic) return false;
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
@@ -118,7 +126,7 @@ export default function AnnuairePage() {
                 >
                   Toutes
                 </button>
-                {mockCategories.map((cat) => (
+                {categories.map((cat) => (
                   <button
                     key={cat.id}
                     onClick={() => { setSelectedCategory(cat.id); setCurrentPage(1); }}
@@ -217,7 +225,7 @@ export default function AnnuairePage() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {paginated.map((commerce) => (
-                  <ResultCard key={commerce.id} commerce={commerce} />
+                  <ResultCard key={commerce.id} commerce={commerce} categories={categories} />
                 ))}
               </div>
             )}

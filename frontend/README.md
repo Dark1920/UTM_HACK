@@ -1,36 +1,161 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FasoArtisan - Frontend
 
-## Getting Started
+Application client de la plateforme FasoArtisan. Annuaire intelligent des artisans du Burkina Faso avec IA, geolocalisation et recherche vocale.
 
-First, run the development server:
+## Stack technique
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+| Composant | Technologie |
+|---|---|
+| Framework | Next.js 16 (App Router, Turbopack) |
+| UI | React 19, Tailwind CSS v4 |
+| State | Zustand |
+| Formulaires | react-hook-form + Zod |
+| Base de donnees | Supabase (PostgreSQL) |
+| Cartes | Leaflet + react-leaflet |
+| Icons | Lucide React |
+| Dates | date-fns |
+| Hors ligne | Dexie (IndexedDB) |
+| IA | Routes backend via proxy (`/api/ai/*`) |
+| Photos | Pexels API (cote serveur) |
+
+## Dependances
+
+Ce frontend depend du **backend** (`localhost:3001`) pour les fonctionnalites IA. Il communique via des rewrites Next.js qui proxyfient `/api/ai/*` vers le backend.
+
+```
+Frontend (3000)  ──proxy──>  Backend (3001)
+     │                            │
+     └──────── Supabase ──────────┘
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Demarrage
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Depuis la racine du monorepo
+npm run dev:frontend    # port 3000
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Ou depuis ce dossier
+npm run dev
+```
 
-## Learn More
+Le backend doit tourner sur le port 3001 en parallele :
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run dev:backend     # port 3001
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Variables d'environnement
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Copier `.env.local.example` vers `.env.local` :
 
-## Deploy on Vercel
+```bash
+cp .env.local.example .env.local
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Variable | Description | Exemple |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | URL du projet Supabase | `https://xxx.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Cle publique Supabase | `eyJ...` |
+| `SUPABASE_URL` | URL Supabase (cote serveur) | `https://xxx.supabase.co` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Cle service role Supabase | `eyJ...` |
+| `AI_API_KEY` | Cle API Groq (pour le proxy) | `gsk_...` |
+| `AI_BASE_URL` | URL API Groq | `https://api.groq.com/openai/v1` |
+| `AI_MODEL` | Modele LLM | `llama-3.1-8b-instant` |
+| `PEXELS_API_KEY` | Cle API Pexels (photos) | `xxxx` |
+| `NEXT_PUBLIC_BACKEND_URL` | URL du backend | `http://localhost:3001` |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Structure
+
+```
+src/
+├── app/                    # Pages Next.js (App Router)
+│   ├── (auth)/             # Auth (connexion, inscription, reset)
+│   ├── (public)/           # Pages publiques (annuaire, commerce, urgence)
+│   ├── admin/              # Panel administrateur
+│   ├── dashboard/          # Dashboard artisan
+│   └── api/                # Routes API cote serveur
+│       ├── avis/           # CRUD avis (Supabase + IA)
+│       └── photos/         # Proxy Pexels
+├── components/             # Composants React
+│   ├── ui/                 # Composants UI generiques
+│   ├── layout/             # Header, footer, sidebar
+│   ├── maps/               # Leaflet
+│   ├── commerces/          # Fiches commerces
+│   ├── commentaires/       # Avis
+│   ├── admin/              # Admin panel
+│   └── dashboard/          # Dashboard artisan
+├── hooks/                  # Hooks React custom
+├── services/               # Couche service (appels API/Supabase)
+├── stores/                 # Etat Zustand
+├── types/                  # Types TypeScript
+├── lib/                    # Utilitaires (Supabase, Pexels, etc.)
+├── utils/                  # Helpers (formatage, validation, etc.)
+└── constants/              # Constantes (routes, categories, etc.)
+```
+
+## Services connectes
+
+| Service | Methode | Status |
+|---|---|---|
+| Auth (login/logout/register) | Supabase Auth | Connecte |
+| Commerces (CRUD) | Supabase `commerces` | Connecte |
+| Categories | Supabase `categories` | Connecte |
+| Avis (CRUD + analyse IA) | `/api/avis` → Supabase + backend | Connecte |
+| Analyse de sentiment | `/api/ai/analyze` → backend → Groq | Connecte |
+| Resume de commentaires | `/api/ai/summarize` → backend → Groq | Connecte |
+| Detection de spam | `/api/ai/analyze` → backend → Groq | Connecte |
+| Photos | `/api/photos` → Pexels | Connecte |
+| Recherche vocale | `/api/ai/voice-search` → backend → Whisper | Backend uniquement |
+| Transcription audio | `/api/ai/speech-to-text` → backend → Whisper | Backend uniquement |
+| Admin CRUD | Mock | Non connecte |
+| Statistiques | Mock | Non connecte |
+| Upload fichiers | Mock | Non connecte |
+| Favoris | localStorage | Local uniquement |
+
+## Routes principales
+
+| Route | Description |
+|---|---|
+| `/` | Page d'accueil |
+| `/annuaire` | Annuaire avec filtres + carte |
+| `/commerce/[id]` | Fiche detaillee d'un commerce |
+| `/urgence` | Mode urgence (geolocalisation) |
+| `/favoris` | Favoris (localStorage) |
+| `/connexion` | Connexion |
+| `/inscription` | Inscription |
+| `/dashboard` | Dashboard artisan |
+| `/dashboard/commerces` | Gestion des commerces |
+| `/admin` | Panel administrateur |
+
+## Architecture des appels API
+
+```
+Client (browser)
+  │
+  ├── commerceService.getAll()
+  │     └── supabase.from('commerces').select(...)
+  │
+  ├── commentaireService.getByCommerceId()
+  │     └── fetch('/api/avis?commerceId=...')
+  │           ├── Supabase CRUD
+  │           └── fetch('http://localhost:3001/api/ai/analyze')
+  │
+  ├── groqService.analyseSentiment()
+  │     └── fetch('/api/ai/analyze')
+  │           └── [proxy rewrites] → backend:3001
+  │
+  └── usePexelsPhotos()
+        └── fetch('/api/photos?query=...')
+              └── Pexels API
+```
+
+## Tests
+
+```bash
+npm run lint      # ESLint
+npm run build     # Build de production
+```
+
+## Deploiement
+
+Le frontend peut etre deploie sur Vercel, Netlify ou tout autre hebergeur Next.js. Les variables d'environnement doivent etre configurees dans l'interface de l'hebergeur.
