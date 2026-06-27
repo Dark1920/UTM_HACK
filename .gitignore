@@ -13,7 +13,4 @@ next-env.d.ts
 
 .DS_Store
 *.pem
-frontend/AGENTS.md
-.gitignore
-frontend/CLAUDE.md
 AGENTS.md
