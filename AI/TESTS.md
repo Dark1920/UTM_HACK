@@ -161,3 +161,21 @@ Invoke-RestMethod -Uri "http://localhost:3000/api/ai/analyze" -Method Post -Cont
 # Resume de commentaires
 Invoke-RestMethod -Uri "http://localhost:3000/api/ai/summarize" -Method Post -ContentType "application/json" -Body '{"commentaires":["bon travail","trop cher","je recommande","accueil sympa"]}'
 ```
+
+### Pipeline Vocal
+
+```powershell
+# Speech-to-text (transcription audio)
+curl.exe -X POST http://localhost:3000/api/ai/speech-to-text -F "audio=@D:\test_transcript.mpeg"
+
+# Voice-search (recherche d artisan par la voix)
+curl.exe -X POST http://localhost:3000/api/ai/voice-search -F "audio=@C:\Users\HP 2025\Music\test_vosea.m4a"
+```
+
+### Tests Voice-Search - Resultats
+
+| Audio | Attendu | Resultat |
+|---|---|---|
+| "Je cherche un coiffeur a Ouara 2000" | intention: recherche, categorie: Coiffeur, quartier: Ouara 2000 | ✅ |
+| Musique (paroles) | intention: incomprehensible ou transcription des paroles | ✅ |
+| Audio vide | intention: incomprehensible | ✅ |

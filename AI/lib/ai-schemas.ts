@@ -28,3 +28,15 @@ export interface AnalyzeRequest {
 export interface SummarizeRequest {
   commentaires: string[]
 }
+
+export interface SpeechToTextResponse {
+  text: string
+}
+
+export interface VoiceSearchResult {
+  texte: string
+  intention: "recherche" | "commentaire" | "incomprehensible"
+  categorie: string | null
+  quartier: string | null
+  urgence: boolean
+}
