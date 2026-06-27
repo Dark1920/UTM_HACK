@@ -34,19 +34,6 @@ function getInitials(name: string): string {
     .toUpperCase();
 }
 
-function getBackgroundColor(name: string): string {
-  const colors = [
-    "bg-gradient-to-br from-primary-400 to-primary-600",
-    "bg-gradient-to-br from-secondary-400 to-secondary-600",
-    "bg-gradient-to-br from-success-400 to-success-600",
-    "bg-gradient-to-br from-info-400 to-info-600",
-    "bg-gradient-to-br from-primary-300 to-secondary-500",
-    "bg-gradient-to-br from-accent-400 to-primary-500",
-  ];
-  const index = name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
-  return colors[index];
-}
-
 function Avatar({
   src,
   alt,
@@ -67,10 +54,7 @@ function Avatar({
         <img
           src={src}
           alt={alt}
-          className={[
-            "rounded-full object-cover ring-2 ring-white",
-            sizeStyles[size],
-          ].join(" ")}
+          className={["rounded-md object-cover", sizeStyles[size]].join(" ")}
           onError={(e) => {
             setImgError(true);
             onError?.(e);
@@ -80,8 +64,7 @@ function Avatar({
       ) : (
         <div
           className={[
-            "flex items-center justify-center rounded-full font-bold text-white shadow-sm",
-            getBackgroundColor(name || alt),
+            "flex items-center justify-center rounded-md font-semibold text-white bg-stone-900",
             sizeStyles[size],
           ].join(" ")}
           aria-label={name || alt}

@@ -2,7 +2,7 @@
 
 import { type HTMLAttributes } from "react";
 
-type BadgeVariant = "default" | "success" | "warning" | "error" | "info" | "warm";
+type BadgeVariant = "default" | "success" | "warning" | "error" | "info" | "warm" | "outline";
 type BadgeSize = "sm" | "md";
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
@@ -12,12 +12,13 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 }
 
 const variantStyles: Record<BadgeVariant, string> = {
-  default: "bg-stone-100 text-stone-600",
-  success: "bg-success-100 text-success-700",
-  warning: "bg-primary-100 text-primary-700",
-  error: "bg-error-100 text-error-700",
-  info: "bg-info-100 text-info-700",
-  warm: "bg-gradient-to-r from-primary-100 to-secondary-100 text-primary-700",
+  default: "bg-stone-100 text-stone-700",
+  success: "bg-success-50 text-success-700",
+  warning: "bg-primary-50 text-primary-700",
+  error: "bg-error-50 text-error-700",
+  info: "bg-info-50 text-info-700",
+  warm: "bg-primary-50 text-primary-700 border border-primary-200",
+  outline: "border border-stone-300 text-stone-700",
 };
 
 const dotStyles: Record<BadgeVariant, string> = {
@@ -27,11 +28,12 @@ const dotStyles: Record<BadgeVariant, string> = {
   error: "bg-error-500",
   info: "bg-info-500",
   warm: "bg-primary-500",
+  outline: "bg-stone-500",
 };
 
 const sizeStyles: Record<BadgeSize, string> = {
-  sm: "px-2.5 py-0.5 text-xs",
-  md: "px-3 py-1 text-sm",
+  sm: "px-2 py-0.5 text-[11px]",
+  md: "px-2.5 py-1 text-xs",
 };
 
 function Badge({
@@ -45,7 +47,7 @@ function Badge({
   return (
     <span
       className={[
-        "inline-flex items-center gap-1.5 rounded-full font-medium",
+        "inline-flex items-center gap-1.5 rounded-md font-medium uppercase tracking-wide",
         variantStyles[variant],
         sizeStyles[size],
         className,

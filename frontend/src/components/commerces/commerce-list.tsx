@@ -14,9 +14,9 @@ interface CommerceListProps {
 
 function CardSkeleton() {
   return (
-    <div className="rounded-2xl border border-stone-200/60 bg-white shadow-sm overflow-hidden">
+    <div className="rounded-lg border border-stone-200 bg-white overflow-hidden">
       <Skeleton variant="rectangle" height={192} />
-      <div className="p-5 space-y-3">
+      <div className="p-4 space-y-3">
         <div className="flex items-start justify-between gap-2">
           <Skeleton variant="text" height={20} className="w-2/3" />
           <Skeleton variant="text" height={20} className="w-16" />
@@ -55,11 +55,11 @@ export function CommerceList({
 
   if (commerces.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-3xl bg-stone-100">
-          <SearchX className="h-10 w-10 text-stone-300" />
+      <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-stone-300 rounded-lg">
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-stone-200 text-stone-400">
+          <SearchX className="h-6 w-6" />
         </div>
-        <h3 className="mb-2 text-xl font-semibold text-stone-900">
+        <h3 className="mb-1.5 text-base font-semibold text-stone-900">
           Aucun résultat trouvé
         </h3>
         <p className="max-w-sm text-sm text-stone-500 leading-relaxed">
@@ -74,7 +74,7 @@ export function CommerceList({
     <div>
       {totalResults != null && (
         <p className="mb-5 text-sm text-stone-500">
-          <span className="font-semibold text-stone-900">{totalResults}</span>{" "}
+          <span className="font-medium text-stone-900">{totalResults}</span>{" "}
           résultat{totalResults > 1 ? "s" : ""}
         </p>
       )}

@@ -72,7 +72,7 @@ export default function AdminCategoriesPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {items.map((cat) => (
-          <div key={cat.id} className="rounded-2xl border border-stone-200 bg-white p-5 space-y-3 shadow-sm hover:shadow-md transition-all duration-300">
+          <div key={cat.id} className="rounded-lg border border-stone-200 bg-white p-5 space-y-3 shadow-sm hover:shadow-md transition-all duration-300">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-stone-900">{cat.nom}</h3>
               <Badge variant="warm">{cat.nombreCommerces}</Badge>
@@ -105,7 +105,7 @@ export default function AdminCategoriesPage() {
               type="text"
               value={form.nom}
               onChange={(e) => setForm((p) => ({ ...p, nom: e.target.value }))}
-              className="w-full rounded-xl border border-stone-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400/30 focus:border-primary-400 transition-all duration-200"
+              className="w-full rounded-lg border border-stone-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400/30 focus:border-primary-400 transition-all duration-200"
               placeholder="Ex: Mécanicien"
             />
           </div>
@@ -115,7 +115,7 @@ export default function AdminCategoriesPage() {
               type="text"
               value={form.slug}
               onChange={(e) => setForm((p) => ({ ...p, slug: e.target.value }))}
-              className="w-full rounded-xl border border-stone-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400/30 focus:border-primary-400 transition-all duration-200"
+              className="w-full rounded-lg border border-stone-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400/30 focus:border-primary-400 transition-all duration-200"
               placeholder="Ex: mecanicien"
             />
           </div>
@@ -125,7 +125,7 @@ export default function AdminCategoriesPage() {
               type="text"
               value={form.description}
               onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
-              className="w-full rounded-xl border border-stone-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400/30 focus:border-primary-400 transition-all duration-200"
+              className="w-full rounded-lg border border-stone-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400/30 focus:border-primary-400 transition-all duration-200"
               placeholder="Description optionnelle"
             />
           </div>

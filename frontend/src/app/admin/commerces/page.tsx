@@ -44,11 +44,11 @@ export default function AdminCommercesPage() {
           placeholder="Rechercher un commerce..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-xl border border-stone-200 bg-white pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400/30 focus:border-primary-400 transition-all duration-200 hover:border-stone-300"
+          className="w-full rounded-lg border border-stone-200 bg-white pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400/30 focus:border-primary-400 transition-all duration-200 hover:border-stone-300"
         />
       </div>
 
-      <div className="hidden md:block rounded-2xl border border-stone-200 bg-white overflow-hidden shadow-sm">
+      <div className="hidden md:block rounded-lg border border-stone-200 bg-white overflow-hidden shadow-sm">
         <table className="w-full text-sm">
           <thead className="bg-stone-50/50 border-b border-stone-100">
             <tr>
@@ -96,7 +96,7 @@ export default function AdminCommercesPage() {
 
       <div className="md:hidden space-y-3">
         {filtered.map((c) => (
-          <div key={c.id} className="rounded-2xl border border-stone-200 bg-white p-4 space-y-3 shadow-sm">
+          <div key={c.id} className="rounded-lg border border-stone-200 bg-white p-4 space-y-3 shadow-sm">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-stone-900">{c.nom}</h3>
               <Badge variant={c.estPublic ? "success" : "warning"}>
@@ -118,7 +118,7 @@ export default function AdminCommercesPage() {
 
       {filtered.length === 0 && (
         <div className="text-center py-16">
-          <div className="h-20 w-20 rounded-3xl bg-stone-100 flex items-center justify-center mx-auto mb-4">
+          <div className="h-20 w-20 rounded-lg bg-stone-100 flex items-center justify-center mx-auto mb-4">
             <Store className="h-10 w-10 text-stone-300" />
           </div>
           <p className="text-stone-500 font-medium">Aucun commerce trouvé</p>

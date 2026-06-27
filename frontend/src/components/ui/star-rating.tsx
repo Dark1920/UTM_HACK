@@ -66,10 +66,8 @@ function StarRating({
               onClick={() => handleClick(i)}
               onMouseEnter={() => interactive && setHoverValue(i + 1)}
               className={[
-                "transition-all duration-200",
-                interactive
-                  ? "cursor-pointer hover:scale-110"
-                  : "cursor-default",
+                "transition-colors",
+                interactive ? "cursor-pointer" : "cursor-default",
                 "disabled:cursor-default",
               ].join(" ")}
               aria-label={`${i + 1} étoile${i > 0 ? "s" : ""}`}
@@ -79,9 +77,9 @@ function StarRating({
                 className={[
                   sizeMap[size],
                   state === "full"
-                    ? "fill-primary-400 text-primary-400"
+                    ? "fill-primary-600 text-primary-600"
                     : state === "half"
-                      ? "fill-primary-400/50 text-primary-400"
+                      ? "fill-primary-600/50 text-primary-600"
                       : "fill-transparent text-stone-300",
                   "transition-colors",
                 ].join(" ")}
@@ -91,7 +89,7 @@ function StarRating({
         })}
       </div>
       {showValue && (
-        <span className={["ml-1 font-medium text-stone-600", textSizeMap[size]].join(" ")}>
+        <span className={["ml-1 font-medium text-stone-700", textSizeMap[size]].join(" ")}>
           {value.toFixed(1)}
         </span>
       )}

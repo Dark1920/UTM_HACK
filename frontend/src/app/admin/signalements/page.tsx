@@ -99,7 +99,7 @@ export default function AdminSignalementsPage() {
 
       <div className="space-y-3">
         {items.map((s) => (
-          <div key={s.id} className="rounded-2xl border border-stone-200 bg-white p-5 space-y-3 shadow-sm hover:shadow-md transition-all duration-300">
+          <div key={s.id} className="rounded-lg border border-stone-200 bg-white p-5 space-y-3 shadow-sm hover:shadow-md transition-all duration-300">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
@@ -137,7 +137,7 @@ export default function AdminSignalementsPage() {
 
       {items.length === 0 && (
         <div className="text-center py-16">
-          <div className="h-20 w-20 rounded-3xl bg-stone-100 flex items-center justify-center mx-auto mb-4">
+          <div className="h-20 w-20 rounded-lg bg-stone-100 flex items-center justify-center mx-auto mb-4">
             <Flag className="h-10 w-10 text-stone-300" />
           </div>
           <p className="text-stone-500 font-medium">Aucun signalement</p>

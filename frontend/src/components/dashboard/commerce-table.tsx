@@ -16,7 +16,7 @@ function TableSkeleton() {
   return (
     <div className="space-y-3">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="flex items-center gap-4 rounded-2xl border border-stone-200 bg-white p-4">
+        <div key={i} className="flex items-center gap-4 rounded-lg border border-stone-200 bg-white p-4">
           <Skeleton variant="circle" width={40} height={40} />
           <div className="flex-1 space-y-2">
             <Skeleton variant="text" height={16} className="w-1/3" />
@@ -41,7 +41,7 @@ export function CommerceTable({ commerces, loading = false, onDelete }: Commerce
 
   if (commerces.length === 0) {
     return (
-      <div className="rounded-2xl border border-stone-200 bg-white p-8 text-center">
+      <div className="rounded-lg border border-stone-200 bg-white p-8 text-center">
         <p className="text-sm text-stone-500">
           Vous n&apos;avez pas encore de commerce.
         </p>
@@ -52,7 +52,7 @@ export function CommerceTable({ commerces, loading = false, onDelete }: Commerce
   return (
     <>
       {/* Desktop table */}
-      <div className="hidden overflow-hidden rounded-2xl border border-stone-200 bg-white md:block">
+      <div className="hidden overflow-hidden rounded-lg border border-stone-200 bg-white md:block">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-stone-100 bg-stone-50/50">
             <tr>
@@ -95,7 +95,7 @@ export function CommerceTable({ commerces, loading = false, onDelete }: Commerce
                 </td>
                 <td className="px-5 py-4 text-right">
                   <span className="inline-flex items-center gap-1 text-stone-600">
-                    <Star className="h-3.5 w-3.5 fill-primary-400 text-primary-400" />
+                    <Star className="h-3.5 w-3.5 fill-primary-600 text-primary-600" />
                     {commerce.note.toFixed(1)}
                   </span>
                 </td>
@@ -103,21 +103,21 @@ export function CommerceTable({ commerces, loading = false, onDelete }: Commerce
                   <div className="flex items-center justify-end gap-1">
                     <Link
                       href={ROUTES.COMMERCE(commerce.id)}
-                      className="rounded-xl p-2 text-stone-400 transition-all duration-200 hover:bg-stone-100 hover:text-stone-600"
+                      className="rounded-lg p-2 text-stone-400 transition-all duration-200 hover:bg-stone-100 hover:text-stone-600"
                       aria-label="Voir"
                     >
                       <Eye className="h-4 w-4" />
                     </Link>
                     <Link
                       href={`/dashboard/commerces/${commerce.id}/modifier`}
-                      className="rounded-xl p-2 text-stone-400 transition-all duration-200 hover:bg-stone-100 hover:text-primary-600"
+                      className="rounded-lg p-2 text-stone-400 transition-all duration-200 hover:bg-stone-100 hover:text-primary-600"
                       aria-label="Modifier"
                     >
                       <Pencil className="h-4 w-4" />
                     </Link>
                     <button
                       onClick={() => onDelete?.(commerce.id)}
-                      className="rounded-xl p-2 text-stone-400 transition-all duration-200 hover:bg-error-50 hover:text-error-600"
+                      className="rounded-lg p-2 text-stone-400 transition-all duration-200 hover:bg-error-50 hover:text-error-600"
                       aria-label="Supprimer"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -135,7 +135,7 @@ export function CommerceTable({ commerces, loading = false, onDelete }: Commerce
         {commerces.map((commerce) => (
           <div
             key={commerce.id}
-            className="rounded-2xl border border-stone-200 bg-white p-4"
+            className="rounded-lg border border-stone-200 bg-white p-4"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
@@ -167,7 +167,7 @@ export function CommerceTable({ commerces, loading = false, onDelete }: Commerce
                   {commerce.nombreVues}
                 </span>
                 <span className="flex items-center gap-1">
-                  <Star className="h-3.5 w-3.5 fill-primary-400 text-primary-400" />
+                  <Star className="h-3.5 w-3.5 fill-primary-600 text-primary-600" />
                   {commerce.note.toFixed(1)}
                 </span>
               </div>

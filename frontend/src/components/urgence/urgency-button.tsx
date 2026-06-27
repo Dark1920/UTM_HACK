@@ -12,17 +12,12 @@ export function UrgencyButton({ onClick, active = false }: UrgencyButtonProps) {
     <button
       onClick={onClick}
       className={[
-        "group relative flex items-center justify-center gap-3 rounded-2xl px-8 py-5 text-lg font-bold text-white transition-all",
-        active
-          ? "bg-red-700 shadow-xl scale-105"
-          : "bg-red-600 hover:bg-red-700 shadow-lg hover:shadow-xl",
+        "flex items-center justify-center gap-2.5 rounded-md px-6 py-3.5 text-base font-semibold text-white transition-colors",
+        active ? "bg-error-700" : "bg-error-600 hover:bg-error-700",
       ].join(" ")}
     >
-      <span className="absolute inset-0 rounded-2xl bg-red-500 animate-ping opacity-20" />
-      <span className="relative flex items-center gap-3">
-        <Siren className="h-7 w-7" />
-        URGENCE
-      </span>
+      <Siren className="h-5 w-5" />
+      URGENCE
     </button>
   );
 }

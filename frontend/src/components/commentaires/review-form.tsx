@@ -43,7 +43,7 @@ export function ReviewForm({ commerceId, onSubmit }: ReviewFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+    <form onSubmit={handleSubmit} className="rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
       <h3 className="mb-5 text-lg font-semibold text-stone-900">
         Laisser un avis
       </h3>
@@ -73,7 +73,7 @@ export function ReviewForm({ commerceId, onSubmit }: ReviewFormProps) {
           onChange={(e) => setTexte(e.target.value.slice(0, MAX_CHARS))}
           rows={4}
           placeholder="Décrivez votre expérience..."
-          className="w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 transition-all duration-200 focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-400/30 resize-none hover:border-stone-300"
+          className="w-full rounded-lg border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 transition-all duration-200 focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-400/30 resize-none hover:border-stone-300"
         />
         <div className="mt-2 flex items-center justify-between">
           <span

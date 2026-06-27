@@ -43,7 +43,7 @@ function Modal({ open, onClose, title, size = "md", children }: ModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
-        className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm animate-in fade-in duration-200"
+        className="absolute inset-0 bg-stone-900/50 animate-in fade-in duration-150"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -52,33 +52,33 @@ function Modal({ open, onClose, title, size = "md", children }: ModalProps) {
         aria-modal="true"
         aria-label={title}
         className={[
-          "relative z-10 w-full mx-4 rounded-2xl bg-white shadow-xl border border-stone-100",
-          "animate-in zoom-in fade-in duration-300",
+          "relative z-10 w-full mx-4 rounded-lg bg-white border border-stone-200",
+          "animate-in zoom-in fade-in duration-200",
           sizeStyles[size],
         ].join(" ")}
       >
         {title && (
-          <div className="flex items-center justify-between border-b border-stone-100 px-6 py-5">
-            <h2 className="text-lg font-semibold text-stone-900">{title}</h2>
+          <div className="flex items-center justify-between border-b border-stone-200 px-5 py-4">
+            <h2 className="text-base font-semibold text-stone-900">{title}</h2>
             <button
               onClick={onClose}
-              className="rounded-xl p-2 text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-all duration-200 active:scale-95"
+              className="rounded-md p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
               aria-label="Fermer"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </button>
           </div>
         )}
         {!title && (
           <button
             onClick={onClose}
-            className="absolute right-4 top-4 rounded-xl p-2 text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-all duration-200 active:scale-95"
+            className="absolute right-3 top-3 rounded-md p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
             aria-label="Fermer"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
         )}
-        <div className="px-6 py-5">{children}</div>
+        <div className="px-5 py-5">{children}</div>
       </div>
     </div>
   );

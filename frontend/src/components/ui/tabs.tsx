@@ -23,10 +23,7 @@ function Tabs({ tabs, defaultIndex = 0, onChange }: TabsProps) {
 
   return (
     <div className="w-full">
-      <div
-        role="tablist"
-        className="flex gap-1 border-b border-stone-100 bg-stone-50/50 p-1 rounded-xl"
-      >
+      <div role="tablist" className="flex gap-6 border-b border-stone-200">
         {tabs.map((tab, index) => (
           <button
             key={index}
@@ -36,11 +33,11 @@ function Tabs({ tabs, defaultIndex = 0, onChange }: TabsProps) {
             id={`tab-${index}`}
             onClick={() => handleTabClick(index)}
             className={[
-              "relative flex-1 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2",
+              "relative -mb-px py-3 text-sm font-medium transition-colors",
+              "focus-visible:outline-none",
               activeIndex === index
-                ? "text-primary-700 bg-white shadow-sm"
-                : "text-stone-500 hover:text-stone-700 hover:bg-white/50",
+                ? "text-stone-900 border-b-2 border-stone-900"
+                : "text-stone-400 border-b-2 border-transparent hover:text-stone-700",
             ].join(" ")}
           >
             {tab.label}
@@ -55,7 +52,7 @@ function Tabs({ tabs, defaultIndex = 0, onChange }: TabsProps) {
             id={`tabpanel-${index}`}
             aria-labelledby={`tab-${index}`}
             hidden={activeIndex !== index}
-            className="animate-in fade-in-up duration-300"
+            className="animate-in fade-in duration-150"
           >
             {tab.content}
           </div>

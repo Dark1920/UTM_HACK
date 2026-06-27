@@ -11,9 +11,9 @@ interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const variantStyles: Record<SkeletonVariant, string> = {
-  text: "rounded-lg",
+  text: "rounded",
   circle: "rounded-full",
-  rectangle: "rounded-xl",
+  rectangle: "rounded-md",
 };
 
 function Skeleton({

@@ -112,7 +112,7 @@ const MapContentLoader = dynamic(
 
 function MapLeafletInner(props: MapLeafletProps) {
   return (
-    <div className={["relative overflow-hidden rounded-xl", props.className ?? "h-96 w-full"].join(" ")}>
+    <div className={["relative overflow-hidden rounded-lg", props.className ?? "h-96 w-full"].join(" ")}>
       <MapContentLoader {...props} />
     </div>
   );

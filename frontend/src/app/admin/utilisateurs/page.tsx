@@ -46,13 +46,13 @@ export default function UtilisateursPage() {
             placeholder="Rechercher un utilisateur..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 border border-stone-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-400/30 focus:border-primary-400 outline-none transition-all duration-200 hover:border-stone-300"
+            className="w-full pl-11 pr-4 py-3 border border-stone-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-400/30 focus:border-primary-400 outline-none transition-all duration-200 hover:border-stone-300"
           />
         </div>
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          className="px-4 py-3 border border-stone-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-400/30 focus:border-primary-400 outline-none transition-all duration-200 hover:border-stone-300"
+          className="px-4 py-3 border border-stone-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-400/30 focus:border-primary-400 outline-none transition-all duration-200 hover:border-stone-300"
         >
           <option value="all">Tous les rôles</option>
           <option value="citoyen">Citoyen</option>
@@ -61,7 +61,7 @@ export default function UtilisateursPage() {
         </select>
       </div>
 
-      <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-sm">
+      <div className="bg-white rounded-lg border border-stone-200 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -80,10 +80,10 @@ export default function UtilisateursPage() {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       {user.avatar ? (
-                        <img src={user.avatar} alt={user.prenom} className="h-9 w-9 rounded-xl object-cover ring-2 ring-stone-100" />
+                        <img src={user.avatar} alt={user.prenom} className="h-9 w-9 rounded-lg object-cover ring-2 ring-stone-100" />
                       ) : (
-                        <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-sm">
-                          <span className="text-xs font-bold text-white">
+                        <div className="h-9 w-9 rounded-md bg-stone-900 flex items-center justify-center">
+                          <span className="text-xs font-semibold text-white">
                             {user.prenom[0]}{user.nom[0]}
                           </span>
                         </div>
@@ -125,7 +125,7 @@ export default function UtilisateursPage() {
                     <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => toggleActive(user.id)}
-                        className={`p-2 rounded-xl transition-all duration-200 ${
+                        className={`p-2 rounded-lg transition-all duration-200 ${
                           user.estActif
                             ? 'text-stone-400 hover:text-primary-600 hover:bg-primary-50'
                             : 'text-stone-400 hover:text-success-600 hover:bg-success-50'
@@ -136,7 +136,7 @@ export default function UtilisateursPage() {
                       </button>
                       <button
                         onClick={() => deleteUser(user.id)}
-                        className="p-2 text-stone-400 hover:text-error-600 hover:bg-error-50 rounded-xl transition-all duration-200"
+                        className="p-2 text-stone-400 hover:text-error-600 hover:bg-error-50 rounded-lg transition-all duration-200"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>

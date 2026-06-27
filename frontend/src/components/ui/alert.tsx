@@ -21,10 +21,10 @@ const variantStyles: Record<AlertVariant, string> = {
 };
 
 const defaultIcons: Record<AlertVariant, ReactNode> = {
-  info: <Info className="h-5 w-5 text-info-500" />,
-  success: <CheckCircle2 className="h-5 w-5 text-success-500" />,
-  warning: <AlertTriangle className="h-5 w-5 text-primary-500" />,
-  error: <AlertCircle className="h-5 w-5 text-error-500" />,
+  info: <Info className="h-4 w-4 text-info-500" />,
+  success: <CheckCircle2 className="h-4 w-4 text-success-500" />,
+  warning: <AlertTriangle className="h-4 w-4 text-primary-500" />,
+  error: <AlertCircle className="h-4 w-4 text-error-500" />,
 };
 
 function Alert({
@@ -39,11 +39,7 @@ function Alert({
   return (
     <div
       role="alert"
-      className={[
-        "flex items-start gap-3.5 rounded-2xl border p-4",
-        variantStyles[variant],
-        className,
-      ].join(" ")}
+      className={["flex items-start gap-3 rounded-md border p-3.5", variantStyles[variant], className].join(" ")}
       {...props}
     >
       <span className="shrink-0 mt-0.5">{icon ?? defaultIcons[variant]}</span>
@@ -51,10 +47,10 @@ function Alert({
       {closeable && (
         <button
           onClick={onClose}
-          className="shrink-0 rounded-lg p-1 opacity-60 hover:opacity-100 hover:bg-white/50 transition-all"
+          className="shrink-0 rounded p-0.5 opacity-60 hover:opacity-100"
           aria-label="Fermer"
         >
-          <X className="h-4 w-4" />
+          <X className="h-3.5 w-3.5" />
         </button>
       )}
     </div>

@@ -16,40 +16,32 @@ function FavoriteCard({
 }) {
   const category = mockCategories.find((c) => c.id === commerce.categorieId);
   return (
-    <div className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg transition-all group">
+    <div className="rounded-lg border border-stone-200 overflow-hidden group hover:border-stone-400 transition-colors">
       <Link href={ROUTES.COMMERCE(commerce.id)}>
-        <div className="relative h-44 bg-gray-100">
-          <img
-            src={commerce.photos[0]}
-            alt={commerce.nom}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-          <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-xs font-medium text-gray-700 px-2.5 py-1 rounded-full">
-            {category?.nom}
-          </span>
+        <div className="relative h-40 bg-stone-100">
+          <img src={commerce.photos[0]} alt={commerce.nom} className="w-full h-full object-cover" />
         </div>
       </Link>
       <div className="p-4">
-        <div className="flex items-start justify-between">
+        <p className="text-xs font-medium uppercase tracking-wide text-stone-400">{category?.nom}</p>
+        <div className="flex items-start justify-between mt-1 gap-2">
           <Link href={ROUTES.COMMERCE(commerce.id)} className="min-w-0">
-            <h3 className="font-semibold text-gray-900 group-hover:text-amber-600 transition-colors truncate">
-              {commerce.nom}
-            </h3>
+            <h3 className="font-medium text-stone-900 group-hover:underline truncate">{commerce.nom}</h3>
           </Link>
           <button
             onClick={() => onRemove(commerce.id)}
-            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors shrink-0 ml-2"
+            className="p-1.5 text-stone-400 hover:text-error-500 rounded-md transition-colors shrink-0"
             title="Retirer des favoris"
           >
             <Trash2 className="h-4 w-4" />
           </button>
         </div>
         <div className="flex items-center gap-1 mt-1.5">
-          <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-          <span className="text-sm font-medium text-gray-700">{commerce.note}</span>
-          <span className="text-sm text-gray-400">({commerce.nombreAvis} avis)</span>
+          <Star className="h-4 w-4 fill-primary-600 text-primary-600" />
+          <span className="text-sm font-medium text-stone-700">{commerce.note}</span>
+          <span className="text-sm text-stone-400">({commerce.nombreAvis} avis)</span>
         </div>
-        <div className="flex items-center gap-1.5 mt-2 text-sm text-gray-500">
+        <div className="flex items-center gap-1.5 mt-2 text-sm text-stone-500">
           <MapPin className="h-3.5 w-3.5 shrink-0" />
           <span className="truncate">{commerce.ville}</span>
         </div>
@@ -83,34 +75,28 @@ export default function FavorisPage() {
   if (!loaded) return null;
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8">Mes favoris</h1>
+    <div className="min-h-screen">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 className="text-2xl font-semibold text-stone-900 tracking-tight mb-8">Mes favoris</h1>
 
         {favoriteCommerces.length === 0 ? (
-          <div className="text-center py-20">
-            <Heart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              Aucun favori pour le moment
-            </h2>
-            <p className="text-gray-500 mb-6 max-w-sm mx-auto">
+          <div className="text-center py-20 border border-dashed border-stone-300 rounded-lg">
+            <Heart className="h-10 w-10 text-stone-300 mx-auto mb-4" />
+            <h2 className="text-base font-semibold text-stone-900 mb-1.5">Aucun favori pour le moment</h2>
+            <p className="text-stone-500 mb-6 max-w-sm mx-auto text-sm">
               Parcourez l&apos;annuaire et ajoutez vos artisans préférés pour les retrouver facilement.
             </p>
             <Link
               href={ROUTES.ANNUAIRE}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-amber-500 text-white font-semibold rounded-xl hover:bg-amber-600 transition-colors"
+              className="inline-flex items-center gap-2 h-10 px-5 bg-stone-900 text-white font-medium rounded-md hover:bg-stone-800 transition-colors"
             >
               Voir l&apos;annuaire
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {favoriteCommerces.map((commerce) => (
-              <FavoriteCard
-                key={commerce.id}
-                commerce={commerce}
-                onRemove={removeFavorite}
-              />
+              <FavoriteCard key={commerce.id} commerce={commerce} onRemove={removeFavorite} />
             ))}
           </div>
         )}

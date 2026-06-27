@@ -25,15 +25,15 @@ export function SearchBar() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row">
-      <div className="relative flex-1 group">
-        <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400 group-focus-within:text-primary-500 transition-colors" />
+    <form onSubmit={handleSubmit} className="flex flex-col gap-2.5 sm:flex-row">
+      <div className="relative flex-1">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
         <input
           type="text"
           value={localQuery}
           onChange={(e) => setLocalQuery(e.target.value)}
           placeholder="Rechercher un artisan, un service..."
-          className="w-full rounded-xl border border-stone-200 bg-white py-3 pl-11 pr-4 text-sm text-stone-900 placeholder:text-stone-400 transition-all duration-200 focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-400/30 hover:border-stone-300"
+          className="w-full h-10 rounded-md border border-stone-300 bg-white pl-9 pr-3 text-sm text-stone-900 placeholder:text-stone-400 transition-colors focus:border-stone-900 focus:outline-none focus:ring-1 focus:ring-stone-900"
         />
       </div>
 
@@ -41,7 +41,7 @@ export function SearchBar() {
         <select
           value={categorieId ?? ""}
           onChange={(e) => setCategorie(e.target.value || null)}
-          className="h-full appearance-none rounded-xl border border-stone-200 bg-white py-3 pl-4 pr-10 text-sm text-stone-700 transition-all duration-200 focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-400/30 hover:border-stone-300"
+          className="h-10 w-full appearance-none rounded-md border border-stone-300 bg-white pl-3 pr-9 text-sm text-stone-700 transition-colors focus:border-stone-900 focus:outline-none focus:ring-1 focus:ring-stone-900"
         >
           <option value="">Toutes catégories</option>
           {CATEGORIES.map((cat) => (
@@ -54,11 +54,11 @@ export function SearchBar() {
       </div>
 
       <div className="relative">
-        <MapPin className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+        <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
         <select
           value={ville ?? ""}
           onChange={(e) => setVille(e.target.value || null)}
-          className="h-full appearance-none rounded-xl border border-stone-200 bg-white py-3 pl-9 pr-10 text-sm text-stone-700 transition-all duration-200 focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-400/30 hover:border-stone-300"
+          className="h-10 w-full appearance-none rounded-md border border-stone-300 bg-white pl-8 pr-9 text-sm text-stone-700 transition-colors focus:border-stone-900 focus:outline-none focus:ring-1 focus:ring-stone-900"
         >
           <option value="">Toutes villes</option>
           {VILLES.map((v) => (
@@ -70,7 +70,7 @@ export function SearchBar() {
         <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
       </div>
 
-      <Button type="submit" size="lg">
+      <Button type="submit" size="md">
         <Search className="h-4 w-4" />
         Rechercher
       </Button>

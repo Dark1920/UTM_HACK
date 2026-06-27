@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Search, SlidersHorizontal, MapPin, Star, Phone, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Search, MapPin, Star, Phone, ChevronLeft, ChevronRight, Map as MapIcon, List } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
 import { mockCommerces, mockCategories } from '@/lib/mock-data';
 import type { Commerce } from '@/types/commerce';
@@ -11,33 +11,26 @@ const cities = ['Toutes', 'Ouagadougou', 'Bobo-Dioulasso', 'Koudougou', 'Banfora
 const ratings = [0, 3, 3.5, 4, 4.5];
 const ITEMS_PER_PAGE = 9;
 
-function CommerceCard({ commerce }: { commerce: Commerce }) {
+function ResultCard({ commerce }: { commerce: Commerce }) {
   const category = mockCategories.find((c) => c.id === commerce.categorieId);
   return (
     <Link
       href={ROUTES.COMMERCE(commerce.id)}
-      className="bg-white rounded-2xl overflow-hidden border border-stone-100 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1"
+      className="group rounded-lg border border-stone-200 overflow-hidden hover:border-stone-400 transition-colors"
     >
-      <div className="relative h-48 bg-stone-100 overflow-hidden">
-        <img
-          src={commerce.photos[0]}
-          alt={commerce.nom}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-        />
-        <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-xs font-medium text-stone-700 px-3 py-1.5 rounded-full shadow-sm">
-          {category?.nom}
-        </span>
+      <div className="relative h-40 bg-stone-100 overflow-hidden">
+        <img src={commerce.photos[0]} alt={commerce.nom} className="w-full h-full object-cover" />
       </div>
-      <div className="p-5">
-        <h3 className="font-semibold text-stone-900 group-hover:text-primary-600 transition-colors">
-          {commerce.nom}
-        </h3>
-        <div className="flex items-center gap-1 mt-2">
-          <Star className="h-4 w-4 fill-primary-400 text-primary-400" />
-          <span className="text-sm font-medium text-stone-700">{commerce.note}</span>
-          <span className="text-sm text-stone-400">({commerce.nombreAvis} avis)</span>
+      <div className="p-4">
+        <p className="text-xs font-medium uppercase tracking-wide text-stone-400">{category?.nom}</p>
+        <div className="flex items-center justify-between mt-1 gap-2">
+          <h3 className="font-medium text-stone-900 group-hover:underline truncate">{commerce.nom}</h3>
+          <span className="flex items-center gap-1 text-sm font-medium text-stone-700 shrink-0">
+            <Star className="h-3.5 w-3.5 fill-primary-600 text-primary-600" />
+            {commerce.note}
+          </span>
         </div>
-        <div className="flex items-center gap-1.5 mt-2.5 text-sm text-stone-500">
+        <div className="flex items-center gap-1.5 mt-2 text-sm text-stone-500">
           <MapPin className="h-3.5 w-3.5 shrink-0" />
           <span className="truncate">{commerce.adresse}</span>
         </div>
@@ -59,7 +52,6 @@ export default function AnnuairePage() {
   const [minRating, setMinRating] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [showMap, setShowMap] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
 
   const filtered = useMemo(() => {
     return mockCommerces.filter((c) => {
@@ -80,165 +72,151 @@ export default function AnnuairePage() {
   }, [searchQuery, selectedCategory, selectedCity, minRating]);
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-  const paginated = filtered.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  const paginated = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   return (
-    <div className="bg-stone-50 min-h-screen">
-      {/* Header */}
-      <div className="bg-white border-b border-stone-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <h1 className="text-3xl sm:text-4xl font-bold text-stone-900 mb-6 tracking-tight">
+    <div className="min-h-screen">
+      <div className="border-b border-stone-200">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <h1 className="text-2xl font-semibold text-stone-900 tracking-tight mb-5">
             Annuaire des artisans
           </h1>
-
-          {/* Search */}
-          <div className="relative max-w-xl group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-stone-400 group-focus-within:text-primary-500 transition-colors" />
+          <div className="relative max-w-lg">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
             <input
               type="text"
               placeholder="Rechercher un artisan, un service, une ville..."
               value={searchQuery}
               onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-              className="w-full pl-12 pr-5 py-4 border border-stone-200 rounded-2xl bg-stone-50 focus:bg-white focus:border-primary-300 focus:ring-2 focus:ring-primary-100 outline-none transition-all duration-200"
+              className="w-full h-11 pl-10 pr-4 text-sm border border-stone-300 rounded-md focus:outline-none focus:ring-1 focus:ring-stone-900 focus:border-stone-900"
             />
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Category chips */}
-        <div className="flex gap-2.5 overflow-x-auto pb-4 scrollbar-hide mb-6">
-          <button
-            onClick={() => { setSelectedCategory(null); setCurrentPage(1); }}
-            className={`shrink-0 px-5 py-2.5 rounded-full text-sm font-medium border transition-all duration-200 ${
-              !selectedCategory
-                ? 'bg-primary-500 text-white border-primary-500 shadow-warm'
-                : 'bg-white text-stone-600 border-stone-200 hover:border-primary-300 hover:text-primary-600'
-            }`}
-          >
-            Toutes
-          </button>
-          {mockCategories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => { setSelectedCategory(cat.id); setCurrentPage(1); }}
-              className={`shrink-0 px-5 py-2.5 rounded-full text-sm font-medium border transition-all duration-200 ${
-                selectedCategory === cat.id
-                  ? 'bg-primary-500 text-white border-primary-500 shadow-warm'
-                  : 'bg-white text-stone-600 border-stone-200 hover:border-primary-300 hover:text-primary-600'
-              }`}
-            >
-              {cat.nom}
-            </button>
-          ))}
-        </div>
-
-        {/* Toolbar */}
-        <div className="flex items-center justify-between mb-8">
-          <p className="text-sm text-stone-500">
-            <span className="font-semibold text-stone-900">{filtered.length}</span> résultat{filtered.length !== 1 ? 's' : ''}
-          </p>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-stone-600 bg-white border border-stone-200 rounded-xl hover:bg-stone-50 hover:border-stone-300 transition-all duration-200"
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              Filtres
-            </button>
-            <button
-              onClick={() => setShowMap(!showMap)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-stone-600 bg-white border border-stone-200 rounded-xl hover:bg-stone-50 hover:border-stone-300 transition-all duration-200"
-            >
-              <MapPin className="h-4 w-4" />
-              {showMap ? 'Masquer la carte' : 'Afficher la carte'}
-            </button>
-          </div>
-        </div>
-
-        {/* Filter sidebar */}
-        {showFilters && (
-          <div className="bg-white rounded-2xl border border-stone-100 p-6 mb-8 shadow-sm animate-in fade-in-down duration-200">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="font-semibold text-stone-900">Filtres</h3>
-              <button onClick={() => setShowFilters(false)} className="p-1.5 rounded-lg hover:bg-stone-100 transition-colors">
-                <X className="h-4 w-4 text-stone-400" />
-              </button>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-stone-700 mb-3">Ville</label>
-                <div className="flex flex-wrap gap-2">
-                  {cities.map((city) => (
-                    <button
-                      key={city}
-                      onClick={() => { setSelectedCity(city); setCurrentPage(1); }}
-                      className={`px-3.5 py-2 text-sm rounded-xl border transition-all duration-200 ${
-                        selectedCity === city
-                          ? 'bg-primary-500 text-white border-primary-500 shadow-warm'
-                          : 'bg-white text-stone-600 border-stone-200 hover:border-primary-300'
-                      }`}
-                    >
-                      {city}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-stone-700 mb-3">Note minimum</label>
-                <div className="flex flex-wrap gap-2">
-                  {ratings.map((r) => (
-                    <button
-                      key={r}
-                      onClick={() => { setMinRating(r); setCurrentPage(1); }}
-                      className={`px-3.5 py-2 text-sm rounded-xl border transition-all duration-200 ${
-                        minRating === r
-                          ? 'bg-primary-500 text-white border-primary-500 shadow-warm'
-                          : 'bg-white text-stone-600 border-stone-200 hover:border-primary-300'
-                      }`}
-                    >
-                      {r === 0 ? 'Toutes' : `${r}+`}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-stone-700 mb-3">Distance</label>
-                <p className="text-sm text-stone-400">Bientôt disponible</p>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid lg:grid-cols-[220px_1fr] gap-8">
+          {/* Filter rail */}
+          <aside className="space-y-7 lg:sticky lg:top-20 lg:self-start">
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-stone-400 mb-3">Catégorie</h3>
+              <div className="flex flex-col gap-0.5">
+                <button
+                  onClick={() => { setSelectedCategory(null); setCurrentPage(1); }}
+                  className={`text-left px-2.5 py-1.5 rounded-md text-sm transition-colors ${
+                    !selectedCategory ? 'bg-stone-900 text-white' : 'text-stone-600 hover:bg-stone-100'
+                  }`}
+                >
+                  Toutes
+                </button>
+                {mockCategories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => { setSelectedCategory(cat.id); setCurrentPage(1); }}
+                    className={`text-left px-2.5 py-1.5 rounded-md text-sm transition-colors flex items-center justify-between ${
+                      selectedCategory === cat.id ? 'bg-stone-900 text-white' : 'text-stone-600 hover:bg-stone-100'
+                    }`}
+                  >
+                    {cat.nom}
+                    <span className={selectedCategory === cat.id ? 'text-stone-300' : 'text-stone-400'}>
+                      {cat.nombreCommerces}
+                    </span>
+                  </button>
+                ))}
               </div>
             </div>
-          </div>
-        )}
 
-        <div className="flex gap-6">
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-stone-400 mb-3">Ville</h3>
+              <div className="flex flex-wrap gap-1.5">
+                {cities.map((city) => (
+                  <button
+                    key={city}
+                    onClick={() => { setSelectedCity(city); setCurrentPage(1); }}
+                    className={`px-2.5 py-1 text-xs rounded-md border transition-colors ${
+                      selectedCity === city
+                        ? 'bg-stone-900 text-white border-stone-900'
+                        : 'bg-white text-stone-600 border-stone-300 hover:border-stone-900'
+                    }`}
+                  >
+                    {city}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-stone-400 mb-3">Note minimum</h3>
+              <div className="flex flex-wrap gap-1.5">
+                {ratings.map((r) => (
+                  <button
+                    key={r}
+                    onClick={() => { setMinRating(r); setCurrentPage(1); }}
+                    className={`px-2.5 py-1 text-xs rounded-md border transition-colors ${
+                      minRating === r
+                        ? 'bg-stone-900 text-white border-stone-900'
+                        : 'bg-white text-stone-600 border-stone-300 hover:border-stone-900'
+                    }`}
+                  >
+                    {r === 0 ? 'Toutes' : `${r}+`}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </aside>
+
           {/* Results */}
-          <div className={`flex-1 ${showMap ? 'hidden lg:block lg:w-1/2' : ''}`}>
-            {paginated.length === 0 ? (
-              <div className="text-center py-20">
-                <div className="h-24 w-24 rounded-3xl bg-stone-100 flex items-center justify-center mx-auto mb-6">
-                  <MapPin className="h-10 w-10 text-stone-300" />
+          <div>
+            <div className="flex items-center justify-between mb-5">
+              <p className="text-sm text-stone-500">
+                <span className="font-medium text-stone-900">{filtered.length}</span> résultat{filtered.length !== 1 ? 's' : ''}
+              </p>
+              <div className="flex items-center gap-1 border border-stone-300 rounded-md p-0.5">
+                <button
+                  onClick={() => setShowMap(false)}
+                  className={`p-1.5 rounded-sm transition-colors ${!showMap ? 'bg-stone-900 text-white' : 'text-stone-500'}`}
+                  aria-label="Liste"
+                >
+                  <List className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setShowMap(true)}
+                  className={`p-1.5 rounded-sm transition-colors ${showMap ? 'bg-stone-900 text-white' : 'text-stone-500'}`}
+                  aria-label="Carte"
+                >
+                  <MapIcon className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            {showMap ? (
+              <div className="rounded-lg border border-stone-200 h-[560px] flex items-center justify-center">
+                <div className="text-center text-stone-400">
+                  <MapPin className="h-8 w-8 mx-auto mb-3" />
+                  <p className="font-medium text-stone-600 text-sm">Carte interactive</p>
+                  <p className="text-xs mt-1">Intégration Leaflet bientôt disponible</p>
                 </div>
-                <h3 className="text-xl font-semibold text-stone-900 mb-2">Aucun résultat</h3>
-                <p className="text-stone-500">Essayez de modifier vos critères de recherche.</p>
+              </div>
+            ) : paginated.length === 0 ? (
+              <div className="text-center py-20 border border-dashed border-stone-300 rounded-lg">
+                <MapPin className="h-8 w-8 text-stone-300 mx-auto mb-4" />
+                <h3 className="text-base font-semibold text-stone-900 mb-1">Aucun résultat</h3>
+                <p className="text-sm text-stone-500">Essayez de modifier vos critères de recherche.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {paginated.map((commerce) => (
-                  <CommerceCard key={commerce.id} commerce={commerce} />
+                  <ResultCard key={commerce.id} commerce={commerce} />
                 ))}
               </div>
             )}
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-10">
+            {!showMap && totalPages > 1 && (
+              <div className="flex items-center justify-center gap-1.5 mt-10">
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="p-2.5 rounded-xl border border-stone-200 text-stone-600 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="h-9 w-9 flex items-center justify-center rounded-md border border-stone-300 text-stone-600 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
@@ -246,10 +224,8 @@ export default function AnnuairePage() {
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
-                    className={`w-10 h-10 rounded-xl text-sm font-medium transition-all duration-200 ${
-                      currentPage === page
-                        ? 'bg-primary-500 text-white shadow-warm'
-                        : 'border border-stone-200 text-stone-600 hover:bg-stone-50'
+                    className={`h-9 w-9 rounded-md text-sm font-medium transition-colors ${
+                      currentPage === page ? 'bg-stone-900 text-white' : 'border border-stone-300 text-stone-600 hover:bg-stone-50'
                     }`}
                   >
                     {page}
@@ -258,28 +234,13 @@ export default function AnnuairePage() {
                 <button
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="p-2.5 rounded-xl border border-stone-200 text-stone-600 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="h-9 w-9 flex items-center justify-center rounded-md border border-stone-300 text-stone-600 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
             )}
           </div>
-
-          {/* Map sidebar */}
-          {showMap && (
-            <div className="hidden lg:block lg:w-1/2">
-              <div className="bg-white rounded-2xl border border-stone-100 h-[600px] flex items-center justify-center sticky top-24 shadow-sm">
-                <div className="text-center text-stone-400">
-                  <div className="h-20 w-20 rounded-3xl bg-stone-50 flex items-center justify-center mx-auto mb-4">
-                    <MapPin className="h-10 w-10 text-stone-300" />
-                  </div>
-                  <p className="font-semibold text-stone-600">Carte interactive</p>
-                  <p className="text-sm mt-1">Intégration Leaflet bientôt disponible</p>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

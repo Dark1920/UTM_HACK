@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Mail, ArrowLeft, CheckCircle, Loader2 } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 import { ROUTES } from '@/constants/routes';
 
@@ -32,19 +32,15 @@ export default function MotDePasseOubliePage() {
   if (submitted) {
     return (
       <div className="text-center">
-        <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-          <CheckCircle className="h-8 w-8 text-green-600" />
+        <div className="mx-auto w-12 h-12 rounded-full border border-success-200 bg-success-50 flex items-center justify-center mb-4">
+          <CheckCircle className="h-6 w-6 text-success-600" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Email envoyé!
-        </h1>
-        <p className="text-gray-600 text-sm mb-6">
-          Si un compte existe avec l&apos;adresse <strong>{email}</strong>, vous recevrez un email avec les instructions pour réinitialiser votre mot de passe.
+        <h1 className="text-xl font-semibold text-stone-900 mb-2">Email envoyé !</h1>
+        <p className="text-stone-500 text-sm mb-6">
+          Si un compte existe avec l&apos;adresse <strong className="text-stone-700">{email}</strong>, vous
+          recevrez un email avec les instructions pour réinitialiser votre mot de passe.
         </p>
-        <Link
-          href={ROUTES.CONNEXION}
-          className="inline-flex items-center gap-2 text-amber-600 hover:text-amber-700 font-medium text-sm"
-        >
+        <Link href={ROUTES.CONNEXION} className="inline-flex items-center gap-2 text-stone-900 font-medium text-sm hover:underline">
           <ArrowLeft className="h-4 w-4" />
           Retour à la connexion
         </Link>
@@ -54,33 +50,31 @@ export default function MotDePasseOubliePage() {
 
   return (
     <>
-      <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">
-        Mot de passe oublié?
-      </h1>
-      <p className="text-gray-600 text-sm text-center mb-6">
+      <h1 className="text-xl font-semibold text-stone-900 text-center mb-1.5">Mot de passe oublié ?</h1>
+      <p className="text-stone-500 text-sm text-center mb-7">
         Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg border border-red-200">
+          <div className="bg-error-50 text-error-700 text-sm px-3.5 py-2.5 rounded-md border border-error-200">
             {error}
           </div>
         )}
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="email" className="block text-sm font-medium text-stone-800 mb-1.5">
             Adresse email
           </label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
             <input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="votre@email.com"
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
+              className="w-full h-10 pl-9 pr-3 border border-stone-300 rounded-md text-sm outline-none transition-colors focus:ring-1 focus:ring-stone-900 focus:border-stone-900"
             />
           </div>
         </div>
@@ -88,27 +82,15 @@ export default function MotDePasseOubliePage() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-2.5 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-400 text-white font-medium rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
+          className="w-full h-10 bg-stone-900 hover:bg-stone-800 disabled:opacity-50 text-white font-medium rounded-md text-sm transition-colors flex items-center justify-center gap-2"
         >
-          {isLoading ? (
-            <>
-              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
-              Envoi en cours...
-            </>
-          ) : (
-            'Envoyer le lien'
-          )}
+          {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+          {isLoading ? 'Envoi en cours...' : 'Envoyer le lien'}
         </button>
       </form>
 
       <div className="mt-6 text-center">
-        <Link
-          href={ROUTES.CONNEXION}
-          className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800"
-        >
+        <Link href={ROUTES.CONNEXION} className="inline-flex items-center gap-2 text-sm text-stone-600 hover:text-stone-900">
           <ArrowLeft className="h-4 w-4" />
           Retour à la connexion
         </Link>

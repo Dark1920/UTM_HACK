@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
-import { Search, ArrowRight, Star, MapPin, Phone, Users, Building, StarHalf, Hammer } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Search, ArrowRight, ArrowUpRight, Star, MapPin, Phone } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
 import { mockCommerces, mockCategories } from '@/lib/mock-data';
 
@@ -19,142 +20,180 @@ const categoryIcons: Record<string, string> = {
   'cat-10': '🎨',
 };
 
+const popularSearches = ['Mécanicien', 'Couturier', 'Électricien', 'Plombier', 'Coiffeur'];
+
 const steps = [
   {
-    num: '1',
+    num: '01',
     title: 'Recherchez',
-    desc: 'Trouvez l\'artisan qu\'il vous faut parmi notre annuaire complet.',
+    desc: "Filtrez par catégorie, ville ou note pour trouver l'artisan qu'il vous faut.",
     icon: Search,
   },
   {
-    num: '2',
+    num: '02',
     title: 'Contactez',
-    desc: 'Appelez ou envoyez un WhatsApp directement depuis l\'application.',
+    desc: 'Appelez ou écrivez sur WhatsApp en un clic, directement depuis la fiche.',
     icon: Phone,
   },
   {
-    num: '3',
+    num: '03',
     title: 'Évaluez',
-    desc: 'Partagez votre expérience et aidez les autres à faire leur choix.',
+    desc: 'Laissez un avis après la prestation pour guider les prochains clients.',
     icon: Star,
   },
 ];
 
+function PreviewCard() {
+  const sample = mockCommerces.slice(0, 3);
+  return (
+    <div className="rounded-lg border border-stone-200 bg-white p-2">
+      <div className="flex items-center justify-between px-3 py-2.5 border-b border-stone-100">
+        <span className="text-xs font-medium text-stone-500">Près de vous · Ouagadougou</span>
+        <span className="h-1.5 w-1.5 rounded-full bg-success-500" />
+      </div>
+      <div className="divide-y divide-stone-100">
+        {sample.map((c) => (
+          <div key={c.id} className="flex items-center gap-3 px-3 py-3">
+            <div className="h-10 w-10 rounded-md bg-stone-900 flex items-center justify-center text-white text-xs font-semibold shrink-0">
+              {c.nom.slice(0, 2).toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-stone-900 truncate">{c.nom}</p>
+              <p className="text-xs text-stone-500 truncate">{c.ville} · {(0.5 + Number(c.id.slice(-1) || 1)).toFixed(1)} km</p>
+            </div>
+            <div className="flex items-center gap-1 text-xs font-medium text-stone-700 shrink-0">
+              <Star className="h-3.5 w-3.5 fill-primary-600 text-primary-600" />
+              {c.note}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function HomePage() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const featuredCommerces = mockCommerces.slice(0, 6);
+
+  const handleSearch = (e: FormEvent) => {
+    e.preventDefault();
+    router.push(`${ROUTES.ANNUAIRE}${searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ''}`);
+  };
 
   return (
     <div className="flex flex-col">
       {/* Hero */}
-      <section className="relative bg-gradient-to-br from-primary-500 via-primary-600 to-secondary-600 text-white overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djZoNnYtNmgtNnptMC0zMHY2aDZ2LTZoLTZ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-20" />
-        <div className="absolute top-10 right-10 w-72 h-72 bg-white/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-10 left-10 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
-          <div className="text-center max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium text-white/90 mb-8 border border-white/10">
-              <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
-              Le bon artisan près de chez vous
-            </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6 text-balance">
-              Trouvez votre artisan de proximité
-            </h1>
-            <p className="text-lg sm:text-xl text-white/80 mb-12 max-w-xl mx-auto leading-relaxed">
-              Le premier annuaire intelligent des artisans du Burkina Faso.
-              Mécaniciens, couturiers, électriciens et bien plus.
-            </p>
+      <section className="border-b border-stone-200">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+          <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-12 lg:gap-16 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-stone-500 mb-5">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary-600" />
+                Annuaire national des artisans
+              </div>
+              <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight text-stone-900 text-balance leading-[1.05]">
+                Trouvez l&apos;artisan de confiance,{' '}
+                <span className="text-primary-600">près de chez vous.</span>
+              </h1>
+              <p className="text-lg text-stone-500 mt-5 max-w-lg leading-relaxed">
+                Mécaniciens, couturiers, électriciens, plombiers&nbsp;— des milliers de
+                professionnels référencés et notés, partout au Burkina Faso.
+              </p>
 
-            <div className="max-w-xl mx-auto mb-10">
-              <div className="relative group">
-                <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-stone-400 group-focus-within:text-primary-500 transition-colors" />
-                <input
-                  type="text"
-                  placeholder="Rechercher un artisan, un service..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-14 pr-6 py-5 text-stone-900 rounded-2xl shadow-2xl text-lg focus:ring-4 focus:ring-white/30 outline-none transition-all"
-                />
+              <form onSubmit={handleSearch} className="mt-8 flex max-w-md">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
+                  <input
+                    type="text"
+                    placeholder="Un métier, un nom, une ville..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full h-12 pl-10 pr-3 text-sm border border-stone-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-stone-900 focus:border-stone-900"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="h-12 px-5 text-sm font-medium text-white bg-stone-900 hover:bg-stone-800 rounded-r-md transition-colors -ml-px"
+                >
+                  Rechercher
+                </button>
+              </form>
+
+              <div className="mt-4 flex flex-wrap items-center gap-x-1.5 gap-y-1.5 text-sm">
+                <span className="text-stone-400">Populaire :</span>
+                {popularSearches.map((term, i) => (
+                  <span key={term} className="text-stone-500">
+                    <Link href={`${ROUTES.ANNUAIRE}?q=${term}`} className="hover:text-stone-900 hover:underline">
+                      {term}
+                    </Link>
+                    {i < popularSearches.length - 1 && <span className="text-stone-300">,</span>}
+                  </span>
+                ))}
+              </div>
+
+              <div className="mt-10 flex items-center gap-8">
+                <Link href={ROUTES.URGENCE} className="inline-flex items-center gap-1.5 text-sm font-medium text-error-600 hover:text-error-700">
+                  J&apos;ai une urgence
+                  <ArrowUpRight className="h-3.5 w-3.5" />
+                </Link>
+                <Link href={ROUTES.ANNUAIRE} className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-700 hover:text-stone-900">
+                  Voir l&apos;annuaire complet
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href={ROUTES.ANNUAIRE}
-                className="inline-flex items-center justify-center gap-2.5 px-8 py-4 bg-white text-primary-700 font-semibold rounded-2xl hover:bg-primary-50 transition-all duration-200 shadow-xl hover:shadow-2xl active:scale-[0.98]"
-              >
-                Voir l&apos;annuaire
-                <ArrowRight className="h-5 w-5" />
-              </Link>
-              <Link
-                href={ROUTES.URGENCE}
-                className="inline-flex items-center justify-center gap-2.5 px-8 py-4 bg-error-500 text-white font-semibold rounded-2xl hover:bg-error-600 transition-all duration-200 shadow-xl hover:shadow-2xl active:scale-[0.98]"
-              >
-                Mode urgence
-              </Link>
-            </div>
+            <PreviewCard />
           </div>
         </div>
       </section>
 
       {/* Stats */}
-      <section className="bg-white border-b border-stone-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-          <div className="grid grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="flex items-center justify-center mb-3">
-                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center">
-                  <Users className="h-6 w-6 text-primary-600" />
-                </div>
+      <section className="border-b border-stone-200">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="flex flex-wrap divide-x divide-stone-200">
+            {[
+              { value: '1 000+', label: 'artisans référencés' },
+              { value: '5', label: 'villes couvertes' },
+              { value: '4,5/5', label: 'note moyenne' },
+              { value: '< 2 s', label: 'temps de recherche' },
+            ].map((stat) => (
+              <div key={stat.label} className="flex-1 min-w-[140px] px-6 first:pl-0">
+                <p className="text-3xl font-semibold text-stone-900 tracking-tight">{stat.value}</p>
+                <p className="text-sm text-stone-500 mt-1">{stat.label}</p>
               </div>
-              <p className="text-3xl sm:text-4xl font-bold text-stone-900 tracking-tight">1000+</p>
-              <p className="text-sm text-stone-500 mt-1">artisans</p>
-            </div>
-            <div>
-              <div className="flex items-center justify-center mb-3">
-                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-secondary-50 to-secondary-100 flex items-center justify-center">
-                  <Building className="h-6 w-6 text-secondary-600" />
-                </div>
-              </div>
-              <p className="text-3xl sm:text-4xl font-bold text-stone-900 tracking-tight">5</p>
-              <p className="text-sm text-stone-500 mt-1">villes</p>
-            </div>
-            <div>
-              <div className="flex items-center justify-center mb-3">
-                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-accent-50 to-accent-100 flex items-center justify-center">
-                  <StarHalf className="h-6 w-6 text-accent-600" />
-                </div>
-              </div>
-              <p className="text-3xl sm:text-4xl font-bold text-stone-900 tracking-tight">4.5</p>
-              <p className="text-sm text-stone-500 mt-1">note moyenne</p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Categories */}
-      <section className="bg-stone-50 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-stone-900 tracking-tight mb-3">
-              Catégories populaires
-            </h2>
-            <p className="text-stone-500 max-w-lg mx-auto">
-              Explorez nos spécialités et trouvez l&apos;expert qu&apos;il vous faut
-            </p>
+      <section className="py-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-end justify-between mb-10">
+            <div>
+              <h2 className="text-2xl font-semibold text-stone-900 tracking-tight">Catégories populaires</h2>
+              <p className="text-stone-500 mt-1.5 text-sm">Explorez nos spécialités les plus demandées</p>
+            </div>
+            <Link href={ROUTES.ANNUAIRE} className="hidden sm:inline-flex items-center gap-1.5 text-sm font-medium text-stone-600 hover:text-stone-900">
+              Tout voir <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
             {mockCategories.map((cat) => (
               <Link
                 key={cat.id}
                 href={`${ROUTES.ANNUAIRE}?categorie=${cat.id}`}
-                className="bg-white rounded-2xl p-6 text-center hover:shadow-lg hover:border-primary-200 border border-stone-100 transition-all duration-300 group hover:-translate-y-0.5"
+                className="group rounded-lg border border-stone-200 p-4 hover:border-stone-900 transition-colors"
               >
-                <span className="text-4xl block mb-3 group-hover:scale-110 transition-transform duration-300">{categoryIcons[cat.id] || '🔧'}</span>
-                <h3 className="font-semibold text-stone-900 group-hover:text-primary-600 transition-colors text-sm">
+                <span className="text-2xl block mb-3">{categoryIcons[cat.id] || '🔧'}</span>
+                <h3 className="font-medium text-stone-900 text-sm flex items-center justify-between">
                   {cat.nom}
+                  <ArrowRight className="h-3.5 w-3.5 text-stone-300 -translate-x-1 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
                 </h3>
-                <p className="text-xs text-stone-400 mt-1.5">{cat.nombreCommerces} artisans</p>
+                <p className="text-xs text-stone-400 mt-1">{cat.nombreCommerces} artisans</p>
               </Link>
             ))}
           </div>
@@ -162,27 +201,20 @@ export default function HomePage() {
       </section>
 
       {/* How it works */}
-      <section className="bg-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl sm:text-4xl font-bold text-stone-900 tracking-tight mb-3">
-              Comment ça marche ?
-            </h2>
-            <p className="text-stone-500 max-w-lg mx-auto">
-              En 3 étapes simples, trouvez l&apos;artisan idéal près de chez vous.
-            </p>
-          </div>
+      <section className="py-20 bg-stone-50 border-y border-stone-200">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl font-semibold text-stone-900 tracking-tight mb-12">
+            Comment ça marche
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             {steps.map((step) => (
-              <div key={step.num} className="text-center group">
-                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center mx-auto mb-6 relative group-hover:shadow-lg group-hover:shadow-primary-100 transition-all duration-300">
-                  <step.icon className="h-8 w-8 text-primary-600" />
-                  <span className="absolute -top-2 -right-2 w-8 h-8 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 text-white text-sm font-bold flex items-center justify-center shadow-lg shadow-primary-200">
-                    {step.num}
-                  </span>
-                </div>
-                <h3 className="text-xl font-semibold text-stone-900 mb-2">{step.title}</h3>
-                <p className="text-stone-500 text-sm leading-relaxed max-w-xs mx-auto">{step.desc}</p>
+              <div key={step.num} className="relative pl-14">
+                <span className="absolute left-0 top-0 text-4xl font-bold text-stone-200 tracking-tight leading-none">
+                  {step.num}
+                </span>
+                <step.icon className="h-5 w-5 text-primary-600 mb-3" />
+                <h3 className="text-base font-semibold text-stone-900 mb-1.5">{step.title}</h3>
+                <p className="text-sm text-stone-500 leading-relaxed">{step.desc}</p>
               </div>
             ))}
           </div>
@@ -190,51 +222,43 @@ export default function HomePage() {
       </section>
 
       {/* Featured commerces */}
-      <section className="bg-stone-50 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-12">
+      <section className="py-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-end justify-between mb-10">
             <div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-stone-900 tracking-tight">
-                Artisans en vedette
-              </h2>
-              <p className="text-stone-500 mt-2">Les mieux notés par la communauté</p>
+              <h2 className="text-2xl font-semibold text-stone-900 tracking-tight">Artisans en vedette</h2>
+              <p className="text-stone-500 mt-1.5 text-sm">Les mieux notés par la communauté</p>
             </div>
-            <Link
-              href={ROUTES.ANNUAIRE}
-              className="hidden sm:inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 font-semibold transition-colors"
-            >
-              Voir tous <ArrowRight className="h-4 w-4" />
+            <Link href={ROUTES.ANNUAIRE} className="hidden sm:inline-flex items-center gap-1.5 text-sm font-medium text-stone-600 hover:text-stone-900">
+              Tout voir <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {featuredCommerces.map((commerce) => (
               <Link
                 key={commerce.id}
                 href={ROUTES.COMMERCE(commerce.id)}
-                className="bg-white rounded-2xl overflow-hidden border border-stone-100 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1"
+                className="group rounded-lg border border-stone-200 overflow-hidden hover:border-stone-400 transition-colors"
               >
-                <div className="relative h-52 bg-stone-100 overflow-hidden">
+                <div className="relative h-44 bg-stone-100 overflow-hidden">
                   <img
                     src={commerce.photos[0]}
                     alt={commerce.nom}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover"
                   />
-                  <div className="absolute top-3 left-3">
-                    <span className="bg-white/90 backdrop-blur-sm text-xs font-medium text-stone-700 px-3 py-1.5 rounded-full shadow-sm">
-                      {mockCategories.find((c) => c.id === commerce.categorieId)?.nom}
+                </div>
+                <div className="p-4">
+                  <p className="text-xs font-medium uppercase tracking-wide text-stone-400">
+                    {mockCategories.find((c) => c.id === commerce.categorieId)?.nom}
+                  </p>
+                  <div className="flex items-center justify-between mt-1">
+                    <h3 className="font-medium text-stone-900 group-hover:underline">{commerce.nom}</h3>
+                    <span className="flex items-center gap-1 text-sm font-medium text-stone-700 shrink-0">
+                      <Star className="h-3.5 w-3.5 fill-primary-600 text-primary-600" />
+                      {commerce.note}
                     </span>
                   </div>
-                </div>
-                <div className="p-5">
-                  <h3 className="font-semibold text-stone-900 group-hover:text-primary-600 transition-colors text-lg">
-                    {commerce.nom}
-                  </h3>
-                  <div className="flex items-center gap-1 mt-2">
-                    <Star className="h-4 w-4 fill-primary-400 text-primary-400" />
-                    <span className="text-sm font-medium text-stone-700">{commerce.note}</span>
-                    <span className="text-sm text-stone-400">({commerce.nombreAvis} avis)</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 mt-2.5 text-sm text-stone-500">
+                  <div className="flex items-center gap-1.5 mt-2 text-sm text-stone-500">
                     <MapPin className="h-3.5 w-3.5" />
                     <span className="truncate">{commerce.ville}</span>
                   </div>
@@ -242,35 +266,26 @@ export default function HomePage() {
               </Link>
             ))}
           </div>
-          <div className="sm:hidden mt-8 text-center">
-            <Link
-              href={ROUTES.ANNUAIRE}
-              className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 font-semibold"
-            >
-              Voir tous les artisans <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="bg-gradient-to-r from-primary-600 via-primary-500 to-secondary-500 py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-white/10 backdrop-blur-sm mb-8">
-            <Hammer className="h-8 w-8 text-white" />
+      <section className="bg-stone-900">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 flex flex-col sm:flex-row items-center justify-between gap-8">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">
+              Vous êtes artisan ?
+            </h2>
+            <p className="text-stone-400 mt-2 max-w-md">
+              Créez votre espace professionnel gratuitement et soyez visible auprès de milliers de clients.
+            </p>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4 tracking-tight">
-            Vous êtes artisan ?
-          </h2>
-          <p className="text-white/80 text-lg mb-10 max-w-xl mx-auto leading-relaxed">
-            Rejoignez ArtisansBF et exposez votre savoir-faire à des milliers de clients potentiels. Inscription gratuite et rapide.
-          </p>
           <Link
             href={ROUTES.INSCRIPTION}
-            className="inline-flex items-center gap-2.5 px-10 py-4 bg-white text-primary-700 font-semibold rounded-2xl hover:bg-primary-50 transition-all duration-200 shadow-xl hover:shadow-2xl active:scale-[0.98]"
+            className="inline-flex items-center gap-2 px-6 h-12 bg-white text-stone-900 font-medium rounded-md hover:bg-stone-100 transition-colors shrink-0"
           >
-            Rejoignez-nous
-            <ArrowRight className="h-5 w-5" />
+            Rejoindre la plateforme
+            <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </section>
