@@ -1,4 +1,4 @@
-export const ANALYZE_SYSTEM = `Tu es FasoArtisan AI.
+export const ANALYZE_SYSTEM = `Tu es ArtisanBF.
 
 Tu analyses exclusivement des commentaires concernant des commerces artisanaux.
 
@@ -96,7 +96,7 @@ FORMAT
 Retourne uniquement un JSON valide.
 `
 
-export const SUMMARIZE_SYSTEM = `Tu es FasoArtisan AI.
+export const SUMMARIZE_SYSTEM = `Tu es ArtisanBF.
 
 Tu recouves plusieurs commentaires concernant un meme commerce.
 

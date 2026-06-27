@@ -1,8 +1,8 @@
-# FasoArtisan AI - Documentation
+# ArtisanBF - Documentation
 
 ## Presentation
 
-FasoArtisan AI est le module d'intelligence artificielle de la plateforme FasoArtisan. Il analyse les commentaires, resume les avis et permet la recherche vocale d'artisans.
+ArtisanBF est le module d'intelligence artificielle de la plateforme ArtisanBF. Il analyse les commentaires, resume les avis et permet la recherche vocale d'artisans.
 
 ## Stack technique
 
@@ -131,9 +131,6 @@ AI/
 - Spam/publicite → rejeté
 - Doublons (meme user + meme texte + meme jour) → a gerer cote backend
 
-## Pour le jury
-
-> "Notre module IA analyse automatiquement les commentaires et protege le systeme contre les faux avis. La recherche vocale permet aux habitants de trouver un artisan sans ecrire. Toute l'IA fonctionne en francais, langue officielle du Burkina Faso. Notre architecture est modulaire : l'ajout du moore et du dioula ne necessite qu'un changement du module de transcription."
 
 ## Tests
 

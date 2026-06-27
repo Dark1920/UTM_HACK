@@ -1,4 +1,4 @@
-# Tests effectues - FasoArtisan AI
+# Tests effectues - ArtisanBF
 
 ## Pipeline Analyse (`POST /api/ai/analyze`)
 
