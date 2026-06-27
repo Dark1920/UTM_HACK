@@ -14,3 +14,4 @@ next-env.d.ts
 .DS_Store
 *.pem
 AGENTS.md
+frontend/CLAUDE.md
