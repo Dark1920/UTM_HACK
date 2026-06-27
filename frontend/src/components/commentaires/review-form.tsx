@@ -1,0 +1,99 @@
+"use client";
+
+import { useState, type FormEvent } from "react";
+import { Send } from "lucide-react";
+import { StarRating, Button } from "@/components/ui";
+
+interface ReviewFormProps {
+  commerceId: string;
+  onSubmit: (data: { texte: string; note: number }) => Promise<void>;
+}
+
+const MAX_CHARS = 500;
+
+export function ReviewForm({ commerceId, onSubmit }: ReviewFormProps) {
+  const [note, setNote] = useState(0);
+  const [texte, setTexte] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (note === 0) {
+      setError("Veuillez sélectionner une note.");
+      return;
+    }
+    if (texte.trim().length < 10) {
+      setError("Votre avis doit contenir au moins 10 caractères.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await onSubmit({ texte: texte.trim(), note });
+      setNote(0);
+      setTexte("");
+    } catch {
+      setError("Une erreur est survenue. Veuillez réessayer.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
+      <h3 className="mb-5 text-lg font-semibold text-stone-900">
+        Laisser un avis
+      </h3>
+
+      <div className="mb-5">
+        <label className="mb-2.5 block text-sm font-medium text-stone-700">
+          Votre note
+        </label>
+        <StarRating
+          value={note}
+          size="lg"
+          interactive
+          onChange={setNote}
+        />
+      </div>
+
+      <div className="mb-5">
+        <label
+          htmlFor={`review-text-${commerceId}`}
+          className="mb-2.5 block text-sm font-medium text-stone-700"
+        >
+          Votre avis
+        </label>
+        <textarea
+          id={`review-text-${commerceId}`}
+          value={texte}
+          onChange={(e) => setTexte(e.target.value.slice(0, MAX_CHARS))}
+          rows={4}
+          placeholder="Décrivez votre expérience..."
+          className="w-full rounded-lg border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 transition-all duration-200 focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-400/30 resize-none hover:border-stone-300"
+        />
+        <div className="mt-2 flex items-center justify-between">
+          <span
+            className={[
+              "text-xs",
+              texte.length > MAX_CHARS * 0.9
+                ? "text-primary-500"
+                : "text-stone-400",
+            ].join(" ")}
+          >
+            {texte.length}/{MAX_CHARS}
+          </span>
+          {error && <span className="text-xs text-error-600">{error}</span>}
+        </div>
+      </div>
+
+      <Button type="submit" loading={loading} disabled={note === 0}>
+        <Send className="h-4 w-4" />
+        Publier l&apos;avis
+      </Button>
+    </form>
+  );
+}

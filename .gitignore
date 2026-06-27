@@ -1,6 +1,15 @@
+# Backend artisanbf
 node_modules
 .env
+.env.local
 .next/
 next-env.d.ts
 
+# Frontend
+frontend/.next/
+frontend/node_modules/
+frontend/CLAUDE.md
+frontend/AGENTS.md
 
+# Divers
+CAHIER DE CHARGE.pdf
