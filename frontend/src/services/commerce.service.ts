@@ -1,14 +1,8 @@
-import { supabase } from '@/lib/supabase/client';
 import type { Commerce, CreateCommerceData } from '@/types/commerce';
 
-export interface CommerceFilters {
-  categorieId?: string;
-  ville?: string;
-  search?: string;
-  artisanId?: string;
-}
+const API = '/api/commerces';
 
-function rowToCommerce(row: Record<string, unknown>): Commerce {
+function mapCommerce(row: Record<string, unknown>): Commerce {
   const categories = row.categories as Record<string, unknown> | null;
   const artisans = row.utilisateurs as Record<string, unknown> | null;
   return {
@@ -27,9 +21,9 @@ function rowToCommerce(row: Record<string, unknown>): Commerce {
     artisanId: row.artisan_id as string,
     artisan: artisans ? {
       id: artisans.id as string,
-      email: (artisans.email as string) || '',
       nom: (artisans.nom as string) || '',
       prenom: (artisans.prenom as string) || '',
+      email: (artisans.email as string) || '',
       role: 'artisan' as const,
       estActif: true,
       dateCreation: '',
@@ -53,102 +47,80 @@ function rowToCommerce(row: Record<string, unknown>): Commerce {
   };
 }
 
+export interface CommerceFilters {
+  categorieId?: string;
+  ville?: string;
+  search?: string;
+  artisanId?: string;
+}
+
 export const commerceService = {
   async getAll(filters?: CommerceFilters): Promise<Commerce[]> {
-    let query = supabase
-      .from('commerces')
-      .select('*, categories(*), utilisateurs(id, nom)')
-      .eq('est_public', true);
+    const params = new URLSearchParams();
+    if (filters?.categorieId) params.set('categorie', filters.categorieId);
+    if (filters?.search) params.set('search', filters.search);
+    if (filters?.artisanId) params.set('artisanId', filters.artisanId);
 
-    if (filters?.categorieId) {
-      query = query.eq('categorie_id', filters.categorieId);
-    }
-    if (filters?.ville) {
-      query = query.ilike('ville', filters.ville);
-    }
-    if (filters?.artisanId) {
-      query = query.eq('artisan_id', filters.artisanId);
-    }
-    if (filters?.search) {
-      const s = filters.search.toLowerCase();
-      query = query.or(`nom.ilike.%${s}%,description.ilike.%${s}%,adresse.ilike.%${s}%`);
-    }
-
-    const { data, error } = await query;
-    if (error) throw new Error(error.message);
-    return (data || []).map(rowToCommerce);
+    const qs = params.toString();
+    const res = await fetch(`${API}${qs ? '?' + qs : ''}`);
+    if (!res.ok) throw new Error('Erreur chargement commerces');
+    const data = await res.json();
+    return (data.commerces || []).map(mapCommerce);
   },
 
   async getById(id: string): Promise<Commerce | undefined> {
-    const { data, error } = await supabase
-      .from('commerces')
-      .select('*, categories(*), utilisateurs(id, nom)')
-      .eq('id', id)
-      .single();
-    if (error || !data) return undefined;
-    return rowToCommerce(data);
+    const res = await fetch(`${API}/${id}`);
+    if (!res.ok) return undefined;
+    const data = await res.json();
+    return mapCommerce(data);
   },
 
   async create(data: CreateCommerceData, artisanId: string): Promise<Commerce> {
-    const { data: row, error } = await supabase
-      .from('commerces')
-      .insert({
-        nom: data.nom,
-        description: data.description,
-        categorie_id: data.categorieId,
-        adresse: data.adresse,
-        ville: data.ville,
-        latitude: data.latitude,
-        longitude: data.longitude,
-        telephone: data.telephone,
-        whatsapp: data.whatsapp,
-        email: data.email,
-        artisan_id: artisanId,
-        est_public: true,
-      })
-      .select('*, categories(*), utilisateurs(id, nom)')
-      .single();
-    if (error) throw new Error(error.message);
-    return rowToCommerce(row);
+    const token = typeof window !== 'undefined' ? localStorage.getItem('supabase_token') : null;
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(API, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Erreur création commerce');
+    return mapCommerce(await res.json());
   },
 
   async update(id: string, data: Partial<CreateCommerceData>): Promise<Commerce> {
-    const updateData: Record<string, unknown> = {};
-    if (data.nom !== undefined) updateData.nom = data.nom;
-    if (data.description !== undefined) updateData.description = data.description;
-    if (data.categorieId !== undefined) updateData.categorie_id = data.categorieId;
-    if (data.adresse !== undefined) updateData.adresse = data.adresse;
-    if (data.ville !== undefined) updateData.ville = data.ville;
-    if (data.latitude !== undefined) updateData.latitude = data.latitude;
-    if (data.longitude !== undefined) updateData.longitude = data.longitude;
-    if (data.telephone !== undefined) updateData.telephone = data.telephone;
-    if (data.whatsapp !== undefined) updateData.whatsapp = data.whatsapp;
-    if (data.email !== undefined) updateData.email = data.email;
+    const token = typeof window !== 'undefined' ? localStorage.getItem('supabase_token') : null;
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    const { data: row, error } = await supabase
-      .from('commerces')
-      .update(updateData)
-      .eq('id', id)
-      .select('*, categories(*), utilisateurs(id, nom)')
-      .single();
-    if (error) throw new Error(error.message);
-    return rowToCommerce(row);
+    const res = await fetch(`${API}/${id}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Erreur mise à jour commerce');
+    return mapCommerce(await res.json());
   },
 
   async delete(id: string): Promise<void> {
-    const { error } = await supabase.from('commerces').delete().eq('id', id);
-    if (error) throw new Error(error.message);
+    const token = typeof window !== 'undefined' ? localStorage.getItem('supabase_token') : null;
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(`${API}/${id}`, { method: 'DELETE', headers });
+    if (!res.ok) throw new Error('Erreur suppression commerce');
   },
 
   async incrementView(id: string): Promise<void> {
-    await supabase.rpc('increment_commerce_views', { commerce_id: id });
+    // TODO: backend route for stats
   },
 
   async incrementCall(id: string): Promise<void> {
-    await supabase.rpc('increment_commerce_calls', { commerce_id: id });
+    // TODO: backend route for stats
   },
 
   async incrementWhatsAppClick(id: string): Promise<void> {
-    await supabase.rpc('increment_commerce_whatsapp', { commerce_id: id });
+    // TODO: backend route for stats
   },
 };
