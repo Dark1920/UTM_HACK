@@ -1,9 +1,5 @@
 import { NextResponse } from "next/server"
-<<<<<<<< HEAD:backend/AI/api/ai/speech-to-text/route.ts
-import { ai } from "@/backend/AI/lib/ai-client"
-========
 import { ai } from "@/lib/ia/client"
->>>>>>>> 0e7fa398639f80e5fe150b540126473268eb5bbd:artisanbf/src/app/api/ai/speech-to-text/route.ts
 
 export async function POST(req: Request) {
   try {

@@ -1,15 +1,8 @@
 import { NextResponse } from "next/server"
-<<<<<<<< HEAD:backend/AI/api/ai/summarize/route.ts
-import { ai } from "@/backend/AI/lib/ai-client"
-import { SUMMARIZE_SYSTEM } from "@/backend/AI/lib/ai-prompts"
-import { extractJson } from "@/backend/AI/lib/ai-parser"
-import type { Summary, SummarizeRequest } from "@/backend/AI/lib/ai-schemas"
-========
 import { ai } from "@/lib/ia/client"
 import { SUMMARIZE_SYSTEM } from "@/lib/ia/prompts"
 import { extractJson } from "@/lib/ia/parser"
 import type { Summary, SummarizeRequest } from "@/lib/ia/schemas"
->>>>>>>> 0e7fa398639f80e5fe150b540126473268eb5bbd:artisanbf/src/app/api/ai/summarize/route.ts
 
 const EMPTY_RESULT: Summary = {
   resume: "Aucun commentaire significatif fourni.",
@@ -47,33 +40,6 @@ function parseSummary(input: unknown): Summary {
   return { resume, points_forts, points_faibles }
 }
 
-/**
- * @swagger
- * /api/ai/summarize:
- *   post:
- *     summary: Résume plusieurs commentaires
- *     description: Utilise l'IA pour générer un résumé synthétique de plusieurs avis
- *     tags: [IA]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/SummarizeRequest'
- *     responses:
- *       200:
- *         description: Résumé généré avec succès
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/SummarizeResponse'
- *       500:
- *         description: Erreur interne du serveur
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
 export async function POST(req: Request) {
   try {
     const body: SummarizeRequest = await req.json()

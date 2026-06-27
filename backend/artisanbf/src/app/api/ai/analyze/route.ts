@@ -1,15 +1,8 @@
 import { NextResponse } from "next/server"
-<<<<<<<< HEAD:backend/AI/api/ai/analyze/route.ts
-import { ai } from "@/backend/AI/lib/ai-client"
-import { ANALYZE_SYSTEM } from "@/backend/AI/lib/ai-prompts"
-import { extractJson } from "@/backend/AI/lib/ai-parser"
-import type { ReviewAnalysis, AnalyzeRequest } from "@/backend/AI/lib/ai-schemas"
-========
 import { ai } from "@/lib/ia/client"
 import { ANALYZE_SYSTEM } from "@/lib/ia/prompts"
 import { extractJson } from "@/lib/ia/parser"
 import type { ReviewAnalysis, AnalyzeRequest } from "@/lib/ia/schemas"
->>>>>>>> 0e7fa398639f80e5fe150b540126473268eb5bbd:artisanbf/src/app/api/ai/analyze/route.ts
 
 const MIN_LENGTH = 2
 
@@ -30,33 +23,6 @@ const DEFAULT_RESULT: ReviewAnalysis = {
   raison: "Commentaire vide ou non pertinent (filtrage deterministe).",
 }
 
-/**
- * @swagger
- * /api/ai/analyze:
- *   post:
- *     summary: Analyse un commentaire avec l'IA
- *     description: Utilise Llama 3.1 via Groq pour analyser le sentiment, la note et la pertinence d'un commentaire
- *     tags: [IA]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/AnalyseRequest'
- *     responses:
- *       200:
- *         description: Analyse réussie
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/AnalyseResponse'
- *       500:
- *         description: Erreur interne du serveur
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
 export async function POST(req: Request) {
   try {
     const body: AnalyzeRequest = await req.json()
@@ -91,4 +57,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Erreur interne du serveur" }, { status: 500 })
   }
 }
-

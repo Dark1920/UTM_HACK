@@ -1,13 +1,7 @@
 import { NextResponse } from "next/server"
-<<<<<<<< HEAD:backend/AI/api/ai/voice-search/route.ts
-import { ai } from "@/backend/AI/lib/ai-client"
-import { VOICE_SEARCH_SYSTEM } from "@/backend/AI/lib/ai-prompts"
-import { extractJson } from "@/backend/AI/lib/ai-parser"
-========
 import { ai } from "@/lib/ia/client"
 import { VOICE_SEARCH_SYSTEM } from "@/lib/ia/prompts"
 import { extractJson } from "@/lib/ia/parser"
->>>>>>>> 0e7fa398639f80e5fe150b540126473268eb5bbd:artisanbf/src/app/api/ai/voice-search/route.ts
 
 export async function POST(req: Request) {
   try {
