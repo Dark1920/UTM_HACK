@@ -1,0 +1,87 @@
+import { NextResponse } from "next/server"
+import { ai } from "@/lib/ia/client"
+import { ANALYZE_SYSTEM } from "@/lib/ia/prompts"
+import { extractJson } from "@/lib/ia/parser"
+import type { ReviewAnalysis, AnalyzeRequest } from "@/lib/ia/schemas"
+
+const MIN_LENGTH = 2
+
+function preValidate(commentaire: string): boolean {
+  const cleaned = commentaire.trim()
+  if (cleaned.length < MIN_LENGTH) return false
+  if ((cleaned.match(/#/g) || []).length > cleaned.length * 0.5) return false
+  return true
+}
+
+const DEFAULT_RESULT: ReviewAnalysis = {
+  pertinent: false,
+  note: 0,
+  sentiment: "neutre",
+  criteres: { qualite: 0, professionnalisme: 0, rapidite: 0, prix: 0 },
+  points_forts: [],
+  points_faibles: [],
+  raison: "Commentaire vide ou non pertinent (filtrage deterministe).",
+}
+
+/**
+ * @swagger
+ * /api/ai/analyze:
+ *   post:
+ *     summary: Analyse un commentaire avec l'IA
+ *     description: Utilise Llama 3.1 via Groq pour analyser le sentiment, la note et la pertinence d'un commentaire
+ *     tags: [IA]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/AnalyseRequest'
+ *     responses:
+ *       200:
+ *         description: Analyse réussie
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AnalyseResponse'
+ *       500:
+ *         description: Erreur interne du serveur
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+export async function POST(req: Request) {
+  try {
+    const body: AnalyzeRequest = await req.json()
+    const commentaire = body.commentaire?.trim()
+
+    if (!commentaire) {
+      return NextResponse.json(DEFAULT_RESULT, { status: 200 })
+    }
+
+    if (!preValidate(commentaire)) {
+      return NextResponse.json(DEFAULT_RESULT, { status: 200 })
+    }
+
+    const response = await ai.chat.completions.create({
+      model: process.env.AI_MODEL || "llama-3.1-8b-instant",
+      messages: [
+        { role: "system", content: ANALYZE_SYSTEM },
+        { role: "user", content: `Analyse ce commentaire :\n\n${commentaire}` },
+      ],
+      temperature: 0.3,
+    })
+
+    const content = response.choices[0]?.message?.content
+    if (!content) {
+      return NextResponse.json({ error: "Reponse vide du LLM" }, { status: 502 })
+    }
+
+    const parsed = extractJson(content) as ReviewAnalysis
+    return NextResponse.json(parsed)
+  } catch (error) {
+    console.error("[/api/ai/analyze]", error)
+    return NextResponse.json({ error: "Erreur interne du serveur" }, { status: 500 })
+  }
+}
+

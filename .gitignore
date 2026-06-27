@@ -3,17 +3,4 @@ node_modules
 .next/
 next-env.d.ts
 
-# Dossiers main (non-IA)
-app/
-constants/
-docs/
-hooks/
-lib/
-prisma/
-public/
-scripts/
-services/
-style/
-supabase/
-types/
-utils/
+
