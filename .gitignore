@@ -1,3 +1,24 @@
-frontend/CLAUDE.md
-frontend/AGENTS.md
+node_modules
+.env
+.next/
+next-env.d.ts
+
+# Dossiers main (non-IA)
+app/
+constants/
+docs/
+hooks/
+lib/
+prisma/
+public/
+scripts/
+services/
+style/
+supabase/
+types/
+utils/
+CLAUDE.md
+AGENTS.md
 CAHIER DE CHARGE.pdf
+.env.*
+!.env.example
