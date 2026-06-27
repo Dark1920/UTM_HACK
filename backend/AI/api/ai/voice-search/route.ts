@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
-import { ai } from "@/AI/lib/ai-client"
-import { VOICE_SEARCH_SYSTEM } from "@/AI/lib/ai-prompts"
-import { extractJson } from "@/AI/lib/ai-parser"
+import { ai } from "@/backend/AI/lib/ai-client"
+import { VOICE_SEARCH_SYSTEM } from "@/backend/AI/lib/ai-prompts"
+import { extractJson } from "@/backend/AI/lib/ai-parser"
 
 export async function POST(req: Request) {
   try {

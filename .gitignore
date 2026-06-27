@@ -1,24 +1,19 @@
 node_modules
 .env
+.env*
+!.env.example
+!.env.local.example
+
 .next/
+out/
+build/
+
+*.tsbuildinfo
 next-env.d.ts
 
-# Dossiers main (non-IA)
-app/
-constants/
-docs/
-hooks/
-lib/
-prisma/
-public/
-scripts/
-services/
-style/
-supabase/
-types/
-utils/
-CLAUDE.md
+.DS_Store
+*.pem
+frontend/AGENTS.md
+.gitignore
+frontend/CLAUDE.md
 AGENTS.md
-CAHIER DE CHARGE.pdf
-.env.*
-!.env.example

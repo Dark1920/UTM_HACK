@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server"
 <<<<<<< HEAD
-import { ai } from "@/AI/lib/ai-client"
+import { ai } from "@/backend/AI/lib/ai-client"
 =======
 import { getGrokClient } from "@/AI/lib/ai-client"
 >>>>>>> 66b021b (Fix prompts and AI routes)
-import { SUMMARIZE_SYSTEM } from "@/AI/lib/ai-prompts"
-import { extractJson } from "@/AI/lib/ai-parser"
-import type { Summary, SummarizeRequest } from "@/AI/lib/ai-schemas"
+import { SUMMARIZE_SYSTEM } from "@/backend/AI/lib/ai-prompts"
+import { extractJson } from "@/backend/AI/lib/ai-parser"
+import type { Summary, SummarizeRequest } from "@/backend/AI/lib/ai-schemas"
 
 const EMPTY_RESULT: Summary = {
   resume: "Aucun commentaire significatif fourni.",

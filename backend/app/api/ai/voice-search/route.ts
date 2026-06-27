@@ -1,0 +1,1 @@
+export { POST } from "@/backend/AI/api/ai/voice-search/route"
