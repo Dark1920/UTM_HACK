@@ -55,23 +55,23 @@ export function CategoryFilter() {
     <div className="relative">
       <button
         onClick={() => scroll("left")}
-        className="absolute left-0 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white p-1.5 shadow-md border border-slate-200 hover:bg-slate-50 transition-colors"
+        className="absolute left-0 top-1/2 z-10 -translate-y-1/2 rounded-xl bg-white p-2 shadow-md border border-stone-200 hover:bg-stone-50 transition-all duration-200"
         aria-label="Défiler à gauche"
       >
-        <ChevronLeft className="h-4 w-4 text-slate-600" />
+        <ChevronLeft className="h-4 w-4 text-stone-600" />
       </button>
 
       <div
         ref={scrollRef}
-        className="no-scrollbar flex gap-2 overflow-x-auto px-8 py-2"
+        className="no-scrollbar flex gap-2.5 overflow-x-auto px-8 py-2"
       >
         <button
           onClick={() => setCategorie(null)}
           className={[
-            "flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-all",
+            "flex shrink-0 items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition-all duration-200",
             categorieId === null
-              ? "border-blue-600 bg-blue-600 text-white shadow-sm"
-              : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50",
+              ? "border-primary-500 bg-primary-500 text-white shadow-warm"
+              : "border-stone-200 bg-white text-stone-700 hover:border-primary-300 hover:bg-primary-50",
           ].join(" ")}
         >
           Tous
@@ -86,10 +86,10 @@ export function CategoryFilter() {
               key={cat.id}
               onClick={() => handleSelect(cat)}
               className={[
-                "flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-all",
+                "flex shrink-0 items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition-all duration-200",
                 isActive
-                  ? "border-blue-600 bg-blue-600 text-white shadow-sm"
-                  : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50",
+                  ? "border-primary-500 bg-primary-500 text-white shadow-warm"
+                  : "border-stone-200 bg-white text-stone-700 hover:border-primary-300 hover:bg-primary-50",
               ].join(" ")}
             >
               <Icon className="h-4 w-4" />
@@ -101,10 +101,10 @@ export function CategoryFilter() {
 
       <button
         onClick={() => scroll("right")}
-        className="absolute right-0 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white p-1.5 shadow-md border border-slate-200 hover:bg-slate-50 transition-colors"
+        className="absolute right-0 top-1/2 z-10 -translate-y-1/2 rounded-xl bg-white p-2 shadow-md border border-stone-200 hover:bg-stone-50 transition-all duration-200"
         aria-label="Défiler à droite"
       >
-        <ChevronRight className="h-4 w-4 text-slate-600" />
+        <ChevronRight className="h-4 w-4 text-stone-600" />
       </button>
     </div>
   );

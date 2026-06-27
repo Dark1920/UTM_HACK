@@ -1,6 +1,6 @@
 import { TrendingUp, TrendingDown } from "lucide-react";
 
-type ColorVariant = "blue" | "green" | "orange" | "red" | "purple";
+type ColorVariant = "amber" | "blue" | "green" | "orange" | "red" | "purple";
 
 interface StatCardProps {
   icon: React.ReactNode;
@@ -13,31 +13,32 @@ interface StatCardProps {
   variant?: ColorVariant;
 }
 
-const variantStyles: Record<ColorVariant, { bg: string; icon: string }> = {
-  blue: { bg: "bg-blue-50", icon: "text-blue-600" },
-  green: { bg: "bg-green-50", icon: "text-green-600" },
-  orange: { bg: "bg-orange-50", icon: "text-orange-600" },
-  red: { bg: "bg-red-50", icon: "text-red-600" },
-  purple: { bg: "bg-purple-50", icon: "text-purple-600" },
+const variantStyles: Record<ColorVariant, { bg: string; icon: string; ring: string }> = {
+  amber: { bg: "bg-gradient-to-br from-primary-50 to-primary-100", icon: "text-primary-600", ring: "ring-primary-200/50" },
+  blue: { bg: "bg-gradient-to-br from-info-50 to-info-100", icon: "text-info-600", ring: "ring-info-200/50" },
+  green: { bg: "bg-gradient-to-br from-success-50 to-success-100", icon: "text-success-600", ring: "ring-success-200/50" },
+  orange: { bg: "bg-gradient-to-br from-secondary-50 to-secondary-100", icon: "text-secondary-600", ring: "ring-secondary-200/50" },
+  red: { bg: "bg-gradient-to-br from-error-50 to-error-100", icon: "text-error-600", ring: "ring-error-200/50" },
+  purple: { bg: "bg-gradient-to-br from-purple-50 to-purple-100", icon: "text-purple-600", ring: "ring-purple-200/50" },
 };
 
-export function StatCard({ icon, value, label, trend, variant = "blue" }: StatCardProps) {
+export function StatCard({ icon, value, label, trend, variant = "amber" }: StatCardProps) {
   const styles = variantStyles[variant];
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-stone-200/60 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-300">
       <div className="flex items-center justify-between">
-        <div className={["flex h-11 w-11 items-center justify-center rounded-lg", styles.bg].join(" ")}>
+        <div className={["flex h-12 w-12 items-center justify-center rounded-xl ring-1", styles.bg, styles.ring].join(" ")}>
           <span className={styles.icon}>{icon}</span>
         </div>
 
         {trend && (
           <div
             className={[
-              "flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
+              "flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold",
               trend.direction === "up"
-                ? "bg-green-100 text-green-700"
-                : "bg-red-100 text-red-700",
+                ? "bg-success-100 text-success-700"
+                : "bg-error-100 text-error-700",
             ].join(" ")}
           >
             {trend.direction === "up" ? (
@@ -50,9 +51,9 @@ export function StatCard({ icon, value, label, trend, variant = "blue" }: StatCa
         )}
       </div>
 
-      <div className="mt-4">
-        <p className="text-2xl font-bold text-slate-900">{value}</p>
-        <p className="mt-0.5 text-sm text-slate-500">{label}</p>
+      <div className="mt-5">
+        <p className="text-3xl font-bold text-stone-900 tracking-tight">{value}</p>
+        <p className="mt-1 text-sm text-stone-500">{label}</p>
       </div>
     </div>
   );

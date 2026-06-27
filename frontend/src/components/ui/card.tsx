@@ -11,9 +11,11 @@ function Card({ hover = false, className = "", children, ...props }: CardProps) 
   return (
     <div
       className={[
-        "rounded-xl border border-slate-200 bg-white shadow-sm",
-        "transition-shadow duration-200",
-        hover ? "hover:shadow-md cursor-pointer" : "",
+        "rounded-2xl border border-stone-200/60 bg-white shadow-sm",
+        "transition-all duration-300",
+        hover
+          ? "hover:shadow-lg hover:-translate-y-0.5 cursor-pointer hover:border-primary-200"
+          : "",
         className,
       ].join(" ")}
       {...props}
@@ -26,7 +28,7 @@ function Card({ hover = false, className = "", children, ...props }: CardProps) 
 function CardHeader({ className = "", children, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={["border-b border-slate-200 px-6 py-4", className].join(" ")}
+      className={["border-b border-stone-100 px-6 py-5", className].join(" ")}
       {...props}
     >
       {children}
@@ -36,7 +38,7 @@ function CardHeader({ className = "", children, ...props }: HTMLAttributes<HTMLD
 
 function CardBody({ className = "", children, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={["px-6 py-4", className].join(" ")} {...props}>
+    <div className={["px-6 py-5", className].join(" ")} {...props}>
       {children}
     </div>
   );
@@ -45,7 +47,7 @@ function CardBody({ className = "", children, ...props }: HTMLAttributes<HTMLDiv
 function CardFooter({ className = "", children, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={["border-t border-slate-200 px-6 py-4", className].join(" ")}
+      className={["border-t border-stone-100 px-6 py-4", className].join(" ")}
       {...props}
     >
       {children}

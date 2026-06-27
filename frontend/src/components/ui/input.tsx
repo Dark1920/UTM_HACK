@@ -14,18 +14,18 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, "-") : undefined);
 
     return (
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-2">
         {label && (
           <label
             htmlFor={inputId}
-            className="text-sm font-medium text-slate-700"
+            className="text-sm font-medium text-stone-700"
           >
             {label}
           </label>
         )}
         <div className="relative">
           {icon && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400">
               {icon}
             </div>
           )}
@@ -33,15 +33,15 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             className={[
-              "w-full rounded-lg border bg-white px-3 py-2 text-sm text-slate-900",
-              "placeholder:text-slate-400",
-              "transition-colors duration-150",
-              "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
-              "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-slate-50",
+              "w-full rounded-xl border bg-white px-4 py-3 text-sm text-stone-900",
+              "placeholder:text-stone-400",
+              "transition-all duration-200",
+              "focus:outline-none focus:ring-2 focus:ring-primary-400/30 focus:border-primary-400",
+              "disabled:cursor-not-allowed disabled:opacity-40 disabled:bg-stone-50",
               error
-                ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                : "border-slate-300",
-              icon ? "pl-10" : "",
+                ? "border-error-400 focus:ring-error-400/30 focus:border-error-400"
+                : "border-stone-200 hover:border-stone-300",
+              icon ? "pl-11" : "",
               className,
             ].join(" ")}
             aria-invalid={error ? "true" : undefined}
@@ -56,12 +56,13 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           />
         </div>
         {error && (
-          <p id={`${inputId}-error`} className="text-sm text-red-600">
+          <p id={`${inputId}-error`} className="text-sm text-error-600 flex items-center gap-1">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-error-400" />
             {error}
           </p>
         )}
         {helperText && !error && (
-          <p id={`${inputId}-helper`} className="text-sm text-slate-500">
+          <p id={`${inputId}-helper`} className="text-sm text-stone-500">
             {helperText}
           </p>
         )}

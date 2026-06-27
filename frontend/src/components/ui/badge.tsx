@@ -2,7 +2,7 @@
 
 import { type HTMLAttributes } from "react";
 
-type BadgeVariant = "default" | "success" | "warning" | "error" | "info";
+type BadgeVariant = "default" | "success" | "warning" | "error" | "info" | "warm";
 type BadgeSize = "sm" | "md";
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
@@ -12,24 +12,26 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 }
 
 const variantStyles: Record<BadgeVariant, string> = {
-  default: "bg-slate-100 text-slate-700",
-  success: "bg-green-100 text-green-700",
-  warning: "bg-orange-100 text-orange-700",
-  error: "bg-red-100 text-red-700",
-  info: "bg-blue-100 text-blue-700",
+  default: "bg-stone-100 text-stone-600",
+  success: "bg-success-100 text-success-700",
+  warning: "bg-primary-100 text-primary-700",
+  error: "bg-error-100 text-error-700",
+  info: "bg-info-100 text-info-700",
+  warm: "bg-gradient-to-r from-primary-100 to-secondary-100 text-primary-700",
 };
 
 const dotStyles: Record<BadgeVariant, string> = {
-  default: "bg-slate-500",
-  success: "bg-green-500",
-  warning: "bg-orange-500",
-  error: "bg-red-500",
-  info: "bg-blue-500",
+  default: "bg-stone-500",
+  success: "bg-success-500",
+  warning: "bg-primary-500",
+  error: "bg-error-500",
+  info: "bg-info-500",
+  warm: "bg-primary-500",
 };
 
 const sizeStyles: Record<BadgeSize, string> = {
-  sm: "px-2 py-0.5 text-xs",
-  md: "px-2.5 py-1 text-sm",
+  sm: "px-2.5 py-0.5 text-xs",
+  md: "px-3 py-1 text-sm",
 };
 
 function Badge({

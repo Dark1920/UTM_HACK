@@ -26,19 +26,19 @@ export function CommerceCard({ commerce, distance }: CommerceCardProps) {
   return (
     <Link
       href={ROUTES.COMMERCE(commerce.id)}
-      className="group block rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
+      className="group block rounded-2xl border border-stone-200/60 bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
     >
-      <div className="relative aspect-[4/3] overflow-hidden rounded-t-xl bg-slate-100">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-t-2xl bg-stone-100">
         {photoUrl ? (
           <img
             src={photoUrl}
             alt={commerce.nom}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             onError={() => setImgError(true)}
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-slate-100">
-            <span className="text-4xl text-slate-300">
+          <div className="flex h-full w-full items-center justify-center bg-stone-100">
+            <span className="text-4xl font-bold text-stone-300">
               {commerce.nom.charAt(0)}
             </span>
           </div>
@@ -51,10 +51,10 @@ export function CommerceCard({ commerce, distance }: CommerceCardProps) {
             toggleFavori(commerce.id);
           }}
           className={[
-            "absolute right-3 top-3 rounded-full p-2 transition-all",
+            "absolute right-3 top-3 rounded-xl p-2.5 transition-all duration-200 active:scale-90",
             favori
-              ? "bg-red-500 text-white"
-              : "bg-white/80 text-slate-500 hover:bg-white hover:text-red-500",
+              ? "bg-error-500 text-white shadow-lg shadow-error-200/50"
+              : "bg-white/80 backdrop-blur-sm text-stone-500 hover:bg-white hover:text-error-500",
           ].join(" ")}
           aria-label={favori ? "Retirer des favoris" : "Ajouter aux favoris"}
         >
@@ -65,35 +65,35 @@ export function CommerceCard({ commerce, distance }: CommerceCardProps) {
         </button>
 
         {distance != null && distance > 0 && (
-          <div className="absolute bottom-3 left-3 rounded-full bg-black/60 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">
+          <div className="absolute bottom-3 left-3 rounded-xl bg-stone-900/70 backdrop-blur-sm px-3 py-1.5 text-xs font-semibold text-white">
             {formaterDistance(distance)}
           </div>
         )}
       </div>
 
-      <div className="p-4">
-        <div className="mb-2 flex items-start justify-between gap-2">
-          <h3 className="text-base font-semibold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+      <div className="p-5">
+        <div className="mb-2.5 flex items-start justify-between gap-2">
+          <h3 className="text-base font-semibold text-stone-900 group-hover:text-primary-600 transition-colors line-clamp-1">
             {commerce.nom}
           </h3>
           {commerce.categorie && (
-            <Badge variant="info" size="sm">
+            <Badge variant="warm" size="sm">
               {commerce.categorie.nom}
             </Badge>
           )}
         </div>
 
         <div className="mb-3 flex items-center gap-1">
-          <Star className="h-4 w-4 fill-orange-400 text-orange-400" />
-          <span className="text-sm font-medium text-slate-700">
+          <Star className="h-4 w-4 fill-primary-400 text-primary-400" />
+          <span className="text-sm font-medium text-stone-700">
             {commerce.note.toFixed(1)}
           </span>
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-stone-400">
             ({commerce.nombreAvis})
           </span>
         </div>
 
-        <div className="mb-4 flex items-center gap-1.5 text-sm text-slate-500">
+        <div className="mb-4 flex items-center gap-1.5 text-sm text-stone-500">
           <MapPin className="h-4 w-4 shrink-0" />
           <span className="line-clamp-1">{commerce.adresse}</span>
         </div>
@@ -102,7 +102,7 @@ export function CommerceCard({ commerce, distance }: CommerceCardProps) {
           <a
             href={`tel:${commerce.telephone}`}
             onClick={(e) => e.stopPropagation()}
-            className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50"
+            className="flex items-center gap-1.5 rounded-xl border border-stone-200 px-3.5 py-2 text-xs font-medium text-stone-700 transition-all duration-200 hover:bg-stone-50 hover:border-stone-300"
           >
             <Phone className="h-3.5 w-3.5" />
             Appeler
@@ -114,7 +114,7 @@ export function CommerceCard({ commerce, distance }: CommerceCardProps) {
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="flex items-center gap-1.5 rounded-lg bg-green-500 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-green-600"
+            className="flex items-center gap-1.5 rounded-xl bg-success-500 px-3.5 py-2 text-xs font-medium text-white transition-all duration-200 hover:bg-success-600 active:scale-[0.98]"
           >
             <MessageCircle className="h-3.5 w-3.5" />
             WhatsApp

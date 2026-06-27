@@ -54,7 +54,7 @@ function StarRating({
         className="flex"
         onMouseLeave={() => interactive && setHoverValue(null)}
         role={interactive ? "radiogroup" : "img"}
-        aria-label={`Rating: ${value} out of ${max}`}
+        aria-label={`Note: ${value} sur ${max}`}
       >
         {Array.from({ length: max }, (_, i) => {
           const state = getStarState(i);
@@ -66,23 +66,23 @@ function StarRating({
               onClick={() => handleClick(i)}
               onMouseEnter={() => interactive && setHoverValue(i + 1)}
               className={[
-                "transition-colors",
+                "transition-all duration-200",
                 interactive
                   ? "cursor-pointer hover:scale-110"
                   : "cursor-default",
                 "disabled:cursor-default",
               ].join(" ")}
-              aria-label={`${i + 1} star${i > 0 ? "s" : ""}`}
+              aria-label={`${i + 1} étoile${i > 0 ? "s" : ""}`}
               tabIndex={interactive ? 0 : -1}
             >
               <Star
                 className={[
                   sizeMap[size],
                   state === "full"
-                    ? "fill-orange-400 text-orange-400"
+                    ? "fill-primary-400 text-primary-400"
                     : state === "half"
-                      ? "fill-orange-400/50 text-orange-400"
-                      : "fill-transparent text-slate-300",
+                      ? "fill-primary-400/50 text-primary-400"
+                      : "fill-transparent text-stone-300",
                   "transition-colors",
                 ].join(" ")}
               />
@@ -91,7 +91,7 @@ function StarRating({
         })}
       </div>
       {showValue && (
-        <span className={["ml-1 font-medium text-slate-600", textSizeMap[size]].join(" ")}>
+        <span className={["ml-1 font-medium text-stone-600", textSizeMap[size]].join(" ")}>
           {value.toFixed(1)}
         </span>
       )}

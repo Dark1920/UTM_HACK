@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Hammer } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 import { ROUTES } from '@/constants/routes';
 import Sidebar from '@/components/layout/sidebar';
@@ -36,29 +36,32 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="sticky top-0 z-40 bg-white border-b border-gray-200 h-16 flex items-center px-4 lg:px-6">
+    <div className="min-h-screen bg-stone-50">
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-stone-200/50 h-18 flex items-center px-4 lg:px-6">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg mr-3"
+          className="lg:hidden p-2.5 text-stone-600 hover:bg-stone-100 rounded-xl mr-3 transition-colors"
         >
           {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
-        <div className="flex items-center gap-2">
-          <span className="text-lg font-bold text-amber-600">Artisans</span>
-          <span className="text-lg font-bold text-gray-900">BF</span>
-          <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded-full">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-secondary-500 text-white">
+            <Hammer className="h-4 w-4" />
+          </div>
+          <span className="text-lg font-bold text-primary-600">Artisans</span>
+          <span className="text-lg font-bold text-stone-900">BF</span>
+          <span className="ml-2 px-2.5 py-0.5 bg-error-100 text-error-700 text-xs font-semibold rounded-full">
             Admin
           </span>
         </div>
         <div className="ml-auto flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center">
-              <span className="text-sm font-medium text-red-700">
+          <div className="hidden sm:flex items-center gap-2.5">
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-error-400 to-error-600 flex items-center justify-center shadow-sm">
+              <span className="text-sm font-bold text-white">
                 {user.prenom[0]}{user.nom[0]}
               </span>
             </div>
-            <span className="text-sm font-medium text-gray-700">{user.prenom}</span>
+            <span className="text-sm font-medium text-stone-700">{user.prenom}</span>
           </div>
         </div>
       </header>
@@ -66,7 +69,7 @@ export default function AdminLayout({
       <div className="flex">
         {sidebarOpen && (
           <div
-            className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+            className="fixed inset-0 z-30 bg-stone-900/40 backdrop-blur-sm lg:hidden"
             onClick={() => setSidebarOpen(false)}
           />
         )}
@@ -83,7 +86,7 @@ export default function AdminLayout({
           <Sidebar role="admin" user={user} onLogout={handleLogout} />
         </div>
 
-        <main className="flex-1 min-h-[calc(100vh-4rem)] p-6">
+        <main className="flex-1 min-h-[calc(100vh-4.5rem)] p-6 lg:p-8">
           {children}
         </main>
       </div>

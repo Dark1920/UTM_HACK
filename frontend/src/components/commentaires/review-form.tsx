@@ -43,13 +43,13 @@ export function ReviewForm({ commerceId, onSubmit }: ReviewFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-xl border border-slate-200 bg-white p-5">
-      <h3 className="mb-4 text-base font-semibold text-slate-900">
+    <form onSubmit={handleSubmit} className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+      <h3 className="mb-5 text-lg font-semibold text-stone-900">
         Laisser un avis
       </h3>
 
-      <div className="mb-4">
-        <label className="mb-2 block text-sm font-medium text-slate-700">
+      <div className="mb-5">
+        <label className="mb-2.5 block text-sm font-medium text-stone-700">
           Votre note
         </label>
         <StarRating
@@ -60,10 +60,10 @@ export function ReviewForm({ commerceId, onSubmit }: ReviewFormProps) {
         />
       </div>
 
-      <div className="mb-4">
+      <div className="mb-5">
         <label
           htmlFor={`review-text-${commerceId}`}
-          className="mb-2 block text-sm font-medium text-slate-700"
+          className="mb-2.5 block text-sm font-medium text-stone-700"
         >
           Votre avis
         </label>
@@ -73,20 +73,20 @@ export function ReviewForm({ commerceId, onSubmit }: ReviewFormProps) {
           onChange={(e) => setTexte(e.target.value.slice(0, MAX_CHARS))}
           rows={4}
           placeholder="Décrivez votre expérience..."
-          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+          className="w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 transition-all duration-200 focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-400/30 resize-none hover:border-stone-300"
         />
-        <div className="mt-1 flex items-center justify-between">
+        <div className="mt-2 flex items-center justify-between">
           <span
             className={[
               "text-xs",
               texte.length > MAX_CHARS * 0.9
-                ? "text-orange-500"
-                : "text-slate-400",
+                ? "text-primary-500"
+                : "text-stone-400",
             ].join(" ")}
           >
             {texte.length}/{MAX_CHARS}
           </span>
-          {error && <span className="text-xs text-red-500">{error}</span>}
+          {error && <span className="text-xs text-error-600">{error}</span>}
         </div>
       </div>
 

@@ -39,10 +39,10 @@ export default function AdminCommentairesPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Gestion des commentaires</h1>
-        <p className="text-muted-foreground">{items.length} commentaires au total</p>
+        <h1 className="text-3xl font-bold text-stone-900 tracking-tight">Gestion des commentaires</h1>
+        <p className="text-stone-500 text-sm mt-2">{items.length} commentaires au total</p>
       </div>
 
       <div className="flex gap-2">
@@ -62,13 +62,13 @@ export default function AdminCommentairesPage() {
         {filtered.map((c) => (
           <div
             key={c.id}
-            className="rounded-lg border bg-white p-4 space-y-2"
+            className="rounded-2xl border border-stone-200 bg-white p-5 space-y-2 shadow-sm hover:shadow-md transition-all duration-300"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium">{c.auteurId}</span>
-                  <span className="text-muted-foreground text-sm">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="font-semibold text-stone-900">{c.auteurId}</span>
+                  <span className="text-stone-500 text-sm">
                     sur {getCommerceName(c.commerceId)}
                   </span>
                   {c.estSpam && (
@@ -81,35 +81,35 @@ export default function AdminCommentairesPage() {
                     <Badge variant="info">IA: {c.iaScore.toFixed(1)}</Badge>
                   )}
                 </div>
-                <div className="flex items-center gap-1 mb-1">
+                <div className="flex items-center gap-1 mb-2">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Star
                       key={i}
                       className={`h-3.5 w-3.5 ${
                         i < c.note
-                          ? "fill-yellow-400 text-yellow-400"
-                          : "text-gray-300"
+                          ? "fill-primary-400 text-primary-400"
+                          : "text-stone-300"
                       }`}
                     />
                   ))}
                 </div>
-                <p className="text-sm text-muted-foreground line-clamp-2">
+                <p className="text-sm text-stone-600 leading-relaxed line-clamp-2">
                   {c.texte}
                 </p>
               </div>
               <div className="flex gap-1 shrink-0">
                 {!c.estSpam && (
                   <Button variant="ghost" size="sm" onClick={() => markSpam(c.id)}>
-                    <AlertTriangle className="h-4 w-4 text-orange-500" />
+                    <AlertTriangle className="h-4 w-4 text-primary-500" />
                   </Button>
                 )}
                 {c.estSpam && (
                   <Button variant="ghost" size="sm" onClick={() => approve(c.id)}>
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckCircle className="h-4 w-4 text-success-500" />
                   </Button>
                 )}
                 <Button variant="ghost" size="sm" onClick={() => remove(c.id)}>
-                  <Trash2 className="h-4 w-4 text-red-500" />
+                  <Trash2 className="h-4 w-4 text-error-500" />
                 </Button>
               </div>
             </div>
@@ -118,9 +118,11 @@ export default function AdminCommentairesPage() {
       </div>
 
       {filtered.length === 0 && (
-        <div className="text-center py-12 text-muted-foreground">
-          <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-          <p>Aucun commentaire trouvé</p>
+        <div className="text-center py-16">
+          <div className="h-20 w-20 rounded-3xl bg-stone-100 flex items-center justify-center mx-auto mb-4">
+            <MessageSquare className="h-10 w-10 text-stone-300" />
+          </div>
+          <p className="text-stone-500 font-medium">Aucun commentaire trouvé</p>
         </div>
       )}
     </div>

@@ -27,7 +27,7 @@ export function StatsOverview({
         icon={<Eye className="h-5 w-5" />}
         value={vues.toLocaleString("fr-FR")}
         label="Vues"
-        variant="blue"
+        variant="amber"
         trend={
           tendances?.vues != null
             ? { value: tendances.vues, direction: tendances.vues >= 0 ? "up" : "down" }

@@ -36,12 +36,12 @@ function getInitials(name: string): string {
 
 function getBackgroundColor(name: string): string {
   const colors = [
-    "bg-blue-500",
-    "bg-orange-500",
-    "bg-green-500",
-    "bg-purple-500",
-    "bg-pink-500",
-    "bg-teal-500",
+    "bg-gradient-to-br from-primary-400 to-primary-600",
+    "bg-gradient-to-br from-secondary-400 to-secondary-600",
+    "bg-gradient-to-br from-success-400 to-success-600",
+    "bg-gradient-to-br from-info-400 to-info-600",
+    "bg-gradient-to-br from-primary-300 to-secondary-500",
+    "bg-gradient-to-br from-accent-400 to-primary-500",
   ];
   const index = name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
   return colors[index];
@@ -68,7 +68,7 @@ function Avatar({
           src={src}
           alt={alt}
           className={[
-            "rounded-full object-cover",
+            "rounded-full object-cover ring-2 ring-white",
             sizeStyles[size],
           ].join(" ")}
           onError={(e) => {
@@ -80,7 +80,7 @@ function Avatar({
       ) : (
         <div
           className={[
-            "flex items-center justify-center rounded-full font-semibold text-white",
+            "flex items-center justify-center rounded-full font-bold text-white shadow-sm",
             getBackgroundColor(name || alt),
             sizeStyles[size],
           ].join(" ")}
@@ -93,10 +93,10 @@ function Avatar({
         <span
           className={[
             "absolute bottom-0 right-0 rounded-full border-white",
-            online ? "bg-green-500" : "bg-slate-400",
+            online ? "bg-success-500" : "bg-stone-400",
             onlineSizeStyles[size],
           ].join(" ")}
-          aria-label={online ? "Online" : "Offline"}
+          aria-label={online ? "En ligne" : "Hors ligne"}
         />
       )}
     </div>

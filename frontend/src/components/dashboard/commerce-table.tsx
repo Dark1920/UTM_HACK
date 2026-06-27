@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Pencil, Trash2, Eye, Star, MoreVertical } from "lucide-react";
+import { Pencil, Trash2, Eye, Star } from "lucide-react";
 import { Badge, Skeleton, Button } from "@/components/ui";
 import { ROUTES } from "@/constants";
 import type { Commerce } from "@/types";
@@ -16,7 +16,7 @@ function TableSkeleton() {
   return (
     <div className="space-y-3">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-4">
+        <div key={i} className="flex items-center gap-4 rounded-2xl border border-stone-200 bg-white p-4">
           <Skeleton variant="circle" width={40} height={40} />
           <div className="flex-1 space-y-2">
             <Skeleton variant="text" height={16} className="w-1/3" />
@@ -41,8 +41,8 @@ export function CommerceTable({ commerces, loading = false, onDelete }: Commerce
 
   if (commerces.length === 0) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white p-8 text-center">
-        <p className="text-sm text-slate-500">
+      <div className="rounded-2xl border border-stone-200 bg-white p-8 text-center">
+        <p className="text-sm text-stone-500">
           Vous n&apos;avez pas encore de commerce.
         </p>
       </div>
@@ -52,33 +52,33 @@ export function CommerceTable({ commerces, loading = false, onDelete }: Commerce
   return (
     <>
       {/* Desktop table */}
-      <div className="hidden overflow-hidden rounded-xl border border-slate-200 bg-white md:block">
+      <div className="hidden overflow-hidden rounded-2xl border border-stone-200 bg-white md:block">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-slate-200 bg-slate-50">
+          <thead className="border-b border-stone-100 bg-stone-50/50">
             <tr>
-              <th className="px-4 py-3 font-medium text-slate-600">Nom</th>
-              <th className="px-4 py-3 font-medium text-slate-600">Catégorie</th>
-              <th className="px-4 py-3 font-medium text-slate-600">Statut</th>
-              <th className="px-4 py-3 font-medium text-slate-600 text-right">Vues</th>
-              <th className="px-4 py-3 font-medium text-slate-600 text-right">Note</th>
-              <th className="px-4 py-3 font-medium text-slate-600 text-right">Actions</th>
+              <th className="px-5 py-3.5 font-semibold text-stone-600">Nom</th>
+              <th className="px-5 py-3.5 font-semibold text-stone-600">Catégorie</th>
+              <th className="px-5 py-3.5 font-semibold text-stone-600">Statut</th>
+              <th className="px-5 py-3.5 font-semibold text-stone-600 text-right">Vues</th>
+              <th className="px-5 py-3.5 font-semibold text-stone-600 text-right">Note</th>
+              <th className="px-5 py-3.5 font-semibold text-stone-600 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-stone-100">
             {commerces.map((commerce) => (
-              <tr key={commerce.id} className="transition-colors hover:bg-slate-50">
-                <td className="px-4 py-3">
+              <tr key={commerce.id} className="transition-colors hover:bg-stone-50/50">
+                <td className="px-5 py-4">
                   <Link
                     href={ROUTES.COMMERCE(commerce.id)}
-                    className="font-medium text-slate-900 hover:text-blue-600 transition-colors"
+                    className="font-semibold text-stone-900 hover:text-primary-600 transition-colors"
                   >
                     {commerce.nom}
                   </Link>
                 </td>
-                <td className="px-4 py-3 text-slate-600">
+                <td className="px-5 py-4 text-stone-600">
                   {commerce.categorie?.nom ?? "—"}
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-5 py-4">
                   <Badge
                     variant={commerce.estPublic ? "success" : "warning"}
                     size="sm"
@@ -87,37 +87,37 @@ export function CommerceTable({ commerces, loading = false, onDelete }: Commerce
                     {commerce.estPublic ? "Publié" : "Brouillon"}
                   </Badge>
                 </td>
-                <td className="px-4 py-3 text-right text-slate-600">
+                <td className="px-5 py-4 text-right text-stone-600">
                   <span className="inline-flex items-center gap-1">
-                    <Eye className="h-3.5 w-3.5 text-slate-400" />
+                    <Eye className="h-3.5 w-3.5 text-stone-400" />
                     {commerce.nombreVues}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-right">
-                  <span className="inline-flex items-center gap-1 text-slate-600">
-                    <Star className="h-3.5 w-3.5 fill-orange-400 text-orange-400" />
+                <td className="px-5 py-4 text-right">
+                  <span className="inline-flex items-center gap-1 text-stone-600">
+                    <Star className="h-3.5 w-3.5 fill-primary-400 text-primary-400" />
                     {commerce.note.toFixed(1)}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-right">
+                <td className="px-5 py-4 text-right">
                   <div className="flex items-center justify-end gap-1">
                     <Link
                       href={ROUTES.COMMERCE(commerce.id)}
-                      className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                      className="rounded-xl p-2 text-stone-400 transition-all duration-200 hover:bg-stone-100 hover:text-stone-600"
                       aria-label="Voir"
                     >
                       <Eye className="h-4 w-4" />
                     </Link>
                     <Link
                       href={`/dashboard/commerces/${commerce.id}/modifier`}
-                      className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-blue-600"
+                      className="rounded-xl p-2 text-stone-400 transition-all duration-200 hover:bg-stone-100 hover:text-primary-600"
                       aria-label="Modifier"
                     >
                       <Pencil className="h-4 w-4" />
                     </Link>
                     <button
                       onClick={() => onDelete?.(commerce.id)}
-                      className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                      className="rounded-xl p-2 text-stone-400 transition-all duration-200 hover:bg-error-50 hover:text-error-600"
                       aria-label="Supprimer"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -135,19 +135,19 @@ export function CommerceTable({ commerces, loading = false, onDelete }: Commerce
         {commerces.map((commerce) => (
           <div
             key={commerce.id}
-            className="rounded-xl border border-slate-200 bg-white p-4"
+            className="rounded-2xl border border-stone-200 bg-white p-4"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <Link
                   href={ROUTES.COMMERCE(commerce.id)}
-                  className="text-sm font-semibold text-slate-900 hover:text-blue-600 transition-colors"
+                  className="text-sm font-semibold text-stone-900 hover:text-primary-600 transition-colors"
                 >
                   {commerce.nom}
                 </Link>
-                <div className="mt-1 flex flex-wrap items-center gap-2">
+                <div className="mt-1.5 flex flex-wrap items-center gap-2">
                   {commerce.categorie && (
-                    <Badge variant="info" size="sm">
+                    <Badge variant="warm" size="sm">
                       {commerce.categorie.nom}
                     </Badge>
                   )}
@@ -161,19 +161,19 @@ export function CommerceTable({ commerces, loading = false, onDelete }: Commerce
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 text-xs text-slate-500">
+              <div className="flex items-center gap-2 text-xs text-stone-500">
                 <span className="flex items-center gap-1">
                   <Eye className="h-3.5 w-3.5" />
                   {commerce.nombreVues}
                 </span>
                 <span className="flex items-center gap-1">
-                  <Star className="h-3.5 w-3.5 fill-orange-400 text-orange-400" />
+                  <Star className="h-3.5 w-3.5 fill-primary-400 text-primary-400" />
                   {commerce.note.toFixed(1)}
                 </span>
               </div>
             </div>
 
-            <div className="mt-3 flex items-center gap-2 border-t border-slate-100 pt-3">
+            <div className="mt-3 flex items-center gap-2 border-t border-stone-100 pt-3">
               <Link
                 href={ROUTES.COMMERCE(commerce.id)}
                 className="flex-1"
@@ -196,7 +196,7 @@ export function CommerceTable({ commerces, loading = false, onDelete }: Commerce
                 variant="ghost"
                 size="sm"
                 onClick={() => onDelete?.(commerce.id)}
-                className="text-red-500 hover:bg-red-50 hover:text-red-600"
+                className="text-error-500 hover:bg-error-50 hover:text-error-600"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>

@@ -11,9 +11,9 @@ interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const variantStyles: Record<SkeletonVariant, string> = {
-  text: "rounded-md",
+  text: "rounded-lg",
   circle: "rounded-full",
-  rectangle: "rounded-lg",
+  rectangle: "rounded-xl",
 };
 
 function Skeleton({
@@ -27,7 +27,7 @@ function Skeleton({
 
   return (
     <div
-      className={["animate-pulse bg-slate-200", variantStyles[variant], className].join(" ")}
+      className={["animate-pulse bg-stone-200", variantStyles[variant], className].join(" ")}
       style={{
         width: width ?? (variant === "circle" ? height : "100%"),
         height: height ?? defaultHeight,

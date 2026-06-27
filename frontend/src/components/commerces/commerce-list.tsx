@@ -14,9 +14,9 @@ interface CommerceListProps {
 
 function CardSkeleton() {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+    <div className="rounded-2xl border border-stone-200/60 bg-white shadow-sm overflow-hidden">
       <Skeleton variant="rectangle" height={192} />
-      <div className="p-4 space-y-3">
+      <div className="p-5 space-y-3">
         <div className="flex items-start justify-between gap-2">
           <Skeleton variant="text" height={20} className="w-2/3" />
           <Skeleton variant="text" height={20} className="w-16" />
@@ -44,7 +44,7 @@ export function CommerceList({
         <div className="mb-4">
           <Skeleton variant="text" height={16} className="w-32" />
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <CardSkeleton key={i} />
           ))}
@@ -55,14 +55,14 @@ export function CommerceList({
 
   if (commerces.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-slate-100">
-          <SearchX className="h-10 w-10 text-slate-400" />
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-3xl bg-stone-100">
+          <SearchX className="h-10 w-10 text-stone-300" />
         </div>
-        <h3 className="mb-2 text-lg font-semibold text-slate-900">
+        <h3 className="mb-2 text-xl font-semibold text-stone-900">
           Aucun résultat trouvé
         </h3>
-        <p className="max-w-sm text-sm text-slate-500">
+        <p className="max-w-sm text-sm text-stone-500 leading-relaxed">
           Essayez de modifier vos filtres ou votre recherche pour trouver
           l&apos;artisan que vous cherchez.
         </p>
@@ -73,13 +73,13 @@ export function CommerceList({
   return (
     <div>
       {totalResults != null && (
-        <p className="mb-4 text-sm text-slate-500">
-          <span className="font-medium text-slate-700">{totalResults}</span>{" "}
+        <p className="mb-5 text-sm text-stone-500">
+          <span className="font-semibold text-stone-900">{totalResults}</span>{" "}
           résultat{totalResults > 1 ? "s" : ""}
         </p>
       )}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {commerces.map((commerce) => (
           <CommerceCard
             key={commerce.id}

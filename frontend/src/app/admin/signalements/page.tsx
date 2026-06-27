@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle, Trash2, XCircle, CheckCircle, Flag } from "lucide-react";
+import { Trash2, XCircle, CheckCircle, Flag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -89,44 +89,44 @@ export default function AdminSignalementsPage() {
   const pendingCount = items.filter((s) => s.statut === "pending").length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Gestion des signalements</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-3xl font-bold text-stone-900 tracking-tight">Gestion des signalements</h1>
+        <p className="text-stone-500 text-sm mt-2">
           {pendingCount} signalement{pendingCount !== 1 ? "s" : ""} en attente
         </p>
       </div>
 
       <div className="space-y-3">
         {items.map((s) => (
-          <div key={s.id} className="rounded-lg border bg-white p-4 space-y-3">
+          <div key={s.id} className="rounded-2xl border border-stone-200 bg-white p-5 space-y-3 shadow-sm hover:shadow-md transition-all duration-300">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <Flag className="h-4 w-4 text-orange-500" />
-                  <span className="font-medium">{s.signaleur}</span>
+                <div className="flex items-center gap-2 mb-2">
+                  <Flag className="h-4 w-4 text-primary-500" />
+                  <span className="font-semibold text-stone-900">{s.signaleur}</span>
                   {statutBadge(s.statut)}
                 </div>
-                <p className="text-sm text-muted-foreground mb-1">
-                  Commerce: <span className="font-medium text-foreground">{s.commerce}</span>
+                <p className="text-sm text-stone-500 mb-1.5">
+                  Commerce: <span className="font-medium text-stone-900">{s.commerce}</span>
                 </p>
-                <p className="text-sm italic text-muted-foreground mb-1">
+                <p className="text-sm italic text-stone-600 mb-1.5 leading-relaxed">
                   &ldquo;{s.commentaireTexte}&rdquo;
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-stone-400">
                   Raison: {s.raison} &middot; {s.date}
                 </p>
               </div>
               {s.statut === "pending" && (
                 <div className="flex gap-1 shrink-0">
                   <Button variant="ghost" size="sm" onClick={() => resolve(s.id)}>
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckCircle className="h-4 w-4 text-success-500" />
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => dismiss(s.id)}>
-                    <XCircle className="h-4 w-4 text-gray-500" />
+                    <XCircle className="h-4 w-4 text-stone-500" />
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => remove(s.id)}>
-                    <Trash2 className="h-4 w-4 text-red-500" />
+                    <Trash2 className="h-4 w-4 text-error-500" />
                   </Button>
                 </div>
               )}
@@ -136,9 +136,11 @@ export default function AdminSignalementsPage() {
       </div>
 
       {items.length === 0 && (
-        <div className="text-center py-12 text-muted-foreground">
-          <AlertTriangle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-          <p>Aucun signalement</p>
+        <div className="text-center py-16">
+          <div className="h-20 w-20 rounded-3xl bg-stone-100 flex items-center justify-center mx-auto mb-4">
+            <Flag className="h-10 w-10 text-stone-300" />
+          </div>
+          <p className="text-stone-500 font-medium">Aucun signalement</p>
         </div>
       )}
     </div>

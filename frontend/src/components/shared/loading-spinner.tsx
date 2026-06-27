@@ -1,5 +1,3 @@
-import { Loader2 } from "lucide-react";
-
 type SpinnerSize = "sm" | "md" | "lg";
 
 interface LoadingSpinnerProps {
@@ -8,17 +6,22 @@ interface LoadingSpinnerProps {
 }
 
 const sizeStyles: Record<SpinnerSize, string> = {
-  sm: "h-4 w-4",
+  sm: "h-5 w-5",
   md: "h-8 w-8",
   lg: "h-12 w-12",
 };
 
 export function LoadingSpinner({ size = "md", message }: LoadingSpinnerProps) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 py-8">
-      <Loader2 className={[sizeStyles[size], "animate-spin text-blue-600"].join(" ")} />
+    <div className="flex flex-col items-center justify-center gap-4 py-12">
+      <div className="relative">
+        <div className={`${sizeStyles[size]} rounded-full border-4 border-stone-100 border-t-primary-500 animate-spin`} />
+        {size === "lg" && (
+          <div className="absolute inset-0 rounded-full border-4 border-transparent border-b-secondary-400 animate-spin" style={{ animationDuration: '1.5s', animationDirection: 'reverse' }} />
+        )}
+      </div>
       {message && (
-        <p className="text-sm text-slate-500">{message}</p>
+        <p className="text-sm text-stone-500 font-medium">{message}</p>
       )}
     </div>
   );
