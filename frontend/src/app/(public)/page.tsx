@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Search, ArrowRight, ArrowUpRight, Star, MapPin, Phone } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
 import { mockCommerces, mockCategories } from '@/lib/mock-data';
+import { CommercePhoto } from '@/components/commerces/commerce-photo';
 
 const categoryIcons: Record<string, string> = {
   'cat-1': '🔧',
@@ -85,20 +86,27 @@ export default function HomePage() {
   return (
     <div className="flex flex-col">
       {/* Hero */}
-      <section className="border-b border-stone-200">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+      <section className="relative border-b border-stone-200 overflow-hidden">
+        <img
+          src="/hero.jpg"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+          aria-hidden="true"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-stone-950/85 via-stone-950/70 to-stone-950/50" />
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
           <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-12 lg:gap-16 items-center">
             <div>
-              <div className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-stone-500 mb-5">
-                <span className="h-1.5 w-1.5 rounded-full bg-primary-600" />
+              <div className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-stone-300 mb-5">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary-400" />
                 Annuaire national des artisans
               </div>
-              <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight text-stone-900 text-balance leading-[1.05]">
+              <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight text-white text-balance leading-[1.05]">
                 Trouvez l&apos;artisan de confiance,{' '}
-                <span className="text-primary-600">près de chez vous.</span>
+                <span className="text-primary-400">près de chez vous.</span>
               </h1>
-              <p className="text-lg text-stone-500 mt-5 max-w-lg leading-relaxed">
-                Mécaniciens, couturiers, électriciens, plombiers&nbsp;— des milliers de
+              <p className="text-lg text-stone-300 mt-5 max-w-lg leading-relaxed">
+                Mécaniciens, couturiers, électriciens, plombiers, des milliers de
                 professionnels référencés et notés, partout au Burkina Faso.
               </p>
 
@@ -110,7 +118,7 @@ export default function HomePage() {
                     placeholder="Un métier, un nom, une ville..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full h-12 pl-10 pr-3 text-sm border border-stone-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-stone-900 focus:border-stone-900"
+                    className="w-full h-12 pl-10 pr-3 text-sm border border-stone-300 rounded-l-md bg-white focus:outline-none focus:ring-1 focus:ring-stone-900 focus:border-stone-900"
                   />
                 </div>
                 <button
@@ -124,21 +132,21 @@ export default function HomePage() {
               <div className="mt-4 flex flex-wrap items-center gap-x-1.5 gap-y-1.5 text-sm">
                 <span className="text-stone-400">Populaire :</span>
                 {popularSearches.map((term, i) => (
-                  <span key={term} className="text-stone-500">
-                    <Link href={`${ROUTES.ANNUAIRE}?q=${term}`} className="hover:text-stone-900 hover:underline">
+                  <span key={term} className="text-stone-300">
+                    <Link href={`${ROUTES.ANNUAIRE}?q=${term}`} className="hover:text-white hover:underline">
                       {term}
                     </Link>
-                    {i < popularSearches.length - 1 && <span className="text-stone-300">,</span>}
+                    {i < popularSearches.length - 1 && <span className="text-stone-500">,</span>}
                   </span>
                 ))}
               </div>
 
               <div className="mt-10 flex items-center gap-8">
-                <Link href={ROUTES.URGENCE} className="inline-flex items-center gap-1.5 text-sm font-medium text-error-600 hover:text-error-700">
+                <Link href={ROUTES.URGENCE} className="inline-flex items-center gap-1.5 text-sm font-medium text-error-400 hover:text-error-300">
                   J&apos;ai une urgence
                   <ArrowUpRight className="h-3.5 w-3.5" />
                 </Link>
-                <Link href={ROUTES.ANNUAIRE} className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-700 hover:text-stone-900">
+                <Link href={ROUTES.ANNUAIRE} className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-200 hover:text-white">
                   Voir l&apos;annuaire complet
                   <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
@@ -241,8 +249,9 @@ export default function HomePage() {
                 className="group rounded-lg border border-stone-200 overflow-hidden hover:border-stone-400 transition-colors"
               >
                 <div className="relative h-44 bg-stone-100 overflow-hidden">
-                  <img
-                    src={commerce.photos[0]}
+                  <CommercePhoto
+                    categorieId={commerce.categorieId}
+                    fallbackSrc={commerce.photos[0]}
                     alt={commerce.nom}
                     className="w-full h-full object-cover"
                   />

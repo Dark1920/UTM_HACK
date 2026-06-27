@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Search, MapPin, Star, Phone, ChevronLeft, ChevronRight, Map as MapIcon, List } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
 import { mockCommerces, mockCategories } from '@/lib/mock-data';
+import { CommercePhoto } from '@/components/commerces/commerce-photo';
 import type { Commerce } from '@/types/commerce';
 
 const cities = ['Toutes', 'Ouagadougou', 'Bobo-Dioulasso', 'Koudougou', 'Banfora', 'Ouahigouya'];
@@ -19,7 +20,12 @@ function ResultCard({ commerce }: { commerce: Commerce }) {
       className="group rounded-lg border border-stone-200 overflow-hidden hover:border-stone-400 transition-colors"
     >
       <div className="relative h-40 bg-stone-100 overflow-hidden">
-        <img src={commerce.photos[0]} alt={commerce.nom} className="w-full h-full object-cover" />
+        <CommercePhoto
+          categorieId={commerce.categorieId}
+          fallbackSrc={commerce.photos[0]}
+          alt={commerce.nom}
+          className="w-full h-full object-cover"
+        />
       </div>
       <div className="p-4">
         <p className="text-xs font-medium uppercase tracking-wide text-stone-400">{category?.nom}</p>

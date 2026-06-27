@@ -76,7 +76,7 @@ export function CommerceTable({ commerces, loading = false, onDelete }: Commerce
                   </Link>
                 </td>
                 <td className="px-5 py-4 text-stone-600">
-                  {commerce.categorie?.nom ?? "—"}
+                  {commerce.categorie?.nom ?? "-"}
                 </td>
                 <td className="px-5 py-4">
                   <Badge

@@ -5,13 +5,19 @@ import Link from 'next/link';
 import { Star, MapPin, Phone, MessageCircle, Heart, ArrowLeft, Send, Share2 } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
 import { getCommerceById, mockCommerces, mockCategories, mockCommentaires, mockCitoyens } from '@/lib/mock-data';
+import { usePexelsPhotos } from '@/hooks/usePexelsPhotos';
+import { CATEGORY_PEXELS_QUERY } from '@/constants/pexels';
+import { CommercePhoto } from '@/components/commerces/commerce-photo';
 
-function PhotoGallery({ photos, name }: { photos: string[]; name: string }) {
+function PhotoGallery({ photos: fallbackPhotos, name, categorieId }: { photos: string[]; name: string; categorieId: string }) {
   const [selected, setSelected] = useState(0);
+  const { photos: pexelsPhotos } = usePexelsPhotos(CATEGORY_PEXELS_QUERY[categorieId] ?? null, 4);
+  const photos = pexelsPhotos.length > 0 ? pexelsPhotos : fallbackPhotos;
+
   return (
     <div className="space-y-2.5">
       <div className="relative h-64 sm:h-80 lg:h-96 bg-stone-100 rounded-lg overflow-hidden">
-        <img src={photos[selected]} alt={name} className="w-full h-full object-cover" />
+        <img src={photos[selected] ?? photos[0]} alt={name} className="w-full h-full object-cover" />
       </div>
       {photos.length > 1 && (
         <div className="flex gap-2">
@@ -87,7 +93,7 @@ export default function CommerceDetailPage({ params }: { params: Promise<{ id: s
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main content */}
           <div className="lg:col-span-2 space-y-5">
-            <PhotoGallery photos={commerce.photos} name={commerce.nom} />
+            <PhotoGallery photos={commerce.photos} name={commerce.nom} categorieId={commerce.categorieId} />
 
             <div className="rounded-lg border border-stone-200 p-6">
               <div className="flex items-start justify-between mb-4 gap-3">
@@ -289,7 +295,12 @@ export default function CommerceDetailPage({ params }: { params: Promise<{ id: s
                 <div className="space-y-3.5">
                   {related.map((r) => (
                     <Link key={r.id} href={ROUTES.COMMERCE(r.id)} className="flex items-center gap-3 group">
-                      <img src={r.photos[0]} alt={r.nom} className="w-12 h-12 rounded-md object-cover shrink-0" />
+                      <CommercePhoto
+                        categorieId={r.categorieId}
+                        fallbackSrc={r.photos[0]}
+                        alt={r.nom}
+                        className="w-12 h-12 rounded-md object-cover shrink-0"
+                      />
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-stone-900 group-hover:underline truncate">{r.nom}</p>
                         <div className="flex items-center gap-1">

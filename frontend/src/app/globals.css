@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 /* ============================================================
-   ARTISANSBF — DESIGN SYSTEM MINIMAL
+   ARTISANSBF - DESIGN SYSTEM MINIMAL
    Épuré, net, beaucoup d'espace, un seul accent (ambre).
    Inspiration: Linear / Vercel. Bordures plutôt qu'ombres.
    ============================================================ */
 
 :root {
   /* ==========================================================
-     1. ACCENT — Ambre (unique couleur de marque)
+     1. ACCENT - Ambre (unique couleur de marque)
      ========================================================== */
   --color-primary-50:  #fffbeb;
   --color-primary-100: #fef3c7;
@@ -22,7 +22,7 @@
   --color-primary-900: #78350f;
 
   /* ==========================================================
-     2. SECONDAIRE — Neutre encre (boutons secondaires "solid")
+     2. SECONDAIRE - Neutre encre (boutons secondaires "solid")
      ========================================================== */
   --color-secondary-50:  #fafafa;
   --color-secondary-100: #f0f0ef;
@@ -36,7 +36,7 @@
   --color-secondary-900: #0a0a09;
 
   /* ==========================================================
-     3. ACCENT SECONDAIRE — alias de l'ambre (pas de 2e teinte)
+     3. ACCENT SECONDAIRE - alias de l'ambre (pas de 2e teinte)
      ========================================================== */
   --color-accent-50:  var(--color-primary-50);
   --color-accent-100: var(--color-primary-100);
@@ -97,7 +97,7 @@
   --color-info-900: #0c4a6e;
 
   /* ==========================================================
-     5. COULEURS DE FOND — NEUTRES, NETTES
+     5. COULEURS DE FOND - NEUTRES, NETTES
      ========================================================== */
   --color-bg-primary:    #ffffff;
   --color-bg-secondary:  #fafafa;
@@ -110,7 +110,7 @@
   --color-bg-overlay:    rgba(10, 10, 9, 0.45);
 
   /* ==========================================================
-     6. BORDURES — PORTENT LA STRUCTURE (pas d'ombres lourdes)
+     6. BORDURES - PORTENT LA STRUCTURE (pas d'ombres lourdes)
      ========================================================== */
   --color-border-default: #e5e5e3;
   --color-border-strong:  #cfcfcb;
@@ -145,7 +145,7 @@
   --color-icon-error:     #ef4444;
 
   /* ==========================================================
-     9. ÉTATS D'INTERACTION — subtils
+     9. ÉTATS D'INTERACTION - subtils
      ========================================================== */
   --color-state-hover:          rgba(10, 10, 9, 0.04)
 ;
@@ -170,7 +170,7 @@
   --color-note-empty:      #e0e0de;
 
   /* ==========================================================
-     11. OMBRES — discrètes, la bordure fait le travail
+     11. OMBRES - discrètes, la bordure fait le travail
      ========================================================== */
   --shadow-xs:    0 1px 2px rgba(10, 10, 9, 0.04);
   --shadow-sm:    0 1px 2px rgba(10, 10, 9, 0.05);
@@ -179,7 +179,7 @@
   --shadow-xl:    0 8px 24px rgba(10, 10, 9, 0.10);
 
   /* ==========================================================
-     12. RAYONS DE BORDURE — petits, nets
+     12. RAYONS DE BORDURE - petits, nets
      ========================================================== */
   --radius-sm:   6px;
   --radius-md:   8px;
@@ -413,7 +413,7 @@
 }
 
 /* ============================================================
-   ANIMATIONS — discrètes, brèves
+   ANIMATIONS - discrètes, brèves
    ============================================================ */
 @keyframes fadeIn {
   from { opacity: 0; }

@@ -29,13 +29,8 @@ export default function Header({ user, onLogout }: HeaderProps) {
     <header className="sticky top-0 z-50 bg-white border-b border-stone-200">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link href={ROUTES.HOME} className="flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-stone-900 text-white text-sm font-bold">
-              A
-            </span>
-            <span className="text-[15px] font-semibold text-stone-900 tracking-tight">
-              ArtisansBF
-            </span>
+          <Link href={ROUTES.HOME} className="flex items-center">
+            <img src="/logo_zoom.png" alt="ArtisanBF" className="h-10 w-10 object-contain" />
           </Link>
 
           <nav className="hidden md:flex items-center gap-7">

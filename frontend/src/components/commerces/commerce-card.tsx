@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Heart, MapPin, Phone, MessageCircle, Star } from "lucide-react";
 import { Badge } from "@/components/ui";
+import { CommercePhoto } from "@/components/commerces/commerce-photo";
 import { useFavorites } from "@/hooks/useFavorites";
 import { genererLienWhatsApp } from "@/utils/phone";
 import { formaterDistance } from "@/utils/distance";
@@ -30,8 +31,9 @@ export function CommerceCard({ commerce, distance }: CommerceCardProps) {
     >
       <div className="relative aspect-[4/3] overflow-hidden rounded-t-lg bg-stone-100">
         {photoUrl ? (
-          <img
-            src={photoUrl}
+          <CommercePhoto
+            categorieId={commerce.categorieId}
+            fallbackSrc={photoUrl}
             alt={commerce.nom}
             className="h-full w-full object-cover"
             onError={() => setImgError(true)}

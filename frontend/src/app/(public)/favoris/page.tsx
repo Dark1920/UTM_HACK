@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Heart, Star, MapPin, Trash2 } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
 import { mockCommerces, mockCategories } from '@/lib/mock-data';
+import { CommercePhoto } from '@/components/commerces/commerce-photo';
 import type { Commerce } from '@/types/commerce';
 
 function FavoriteCard({
@@ -19,7 +20,12 @@ function FavoriteCard({
     <div className="rounded-lg border border-stone-200 overflow-hidden group hover:border-stone-400 transition-colors">
       <Link href={ROUTES.COMMERCE(commerce.id)}>
         <div className="relative h-40 bg-stone-100">
-          <img src={commerce.photos[0]} alt={commerce.nom} className="w-full h-full object-cover" />
+          <CommercePhoto
+            categorieId={commerce.categorieId}
+            fallbackSrc={commerce.photos[0]}
+            alt={commerce.nom}
+            className="w-full h-full object-cover"
+          />
         </div>
       </Link>
       <div className="p-4">

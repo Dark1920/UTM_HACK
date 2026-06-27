@@ -10,7 +10,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ArtisansBF — Le bon artisan près de chez vous",
+  title: "ArtisansBF - Le bon artisan près de chez vous",
   description: "Le premier annuaire intelligent des artisans du Burkina Faso. Mécaniciens, couturiers, électriciens et bien plus. Trouvez le bon artisan en un clic.",
 };
 

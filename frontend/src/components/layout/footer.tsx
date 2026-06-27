@@ -26,11 +26,8 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr_1fr] gap-10">
           <div>
-            <Link href={ROUTES.HOME} className="flex items-center gap-2 mb-4">
-              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-white text-stone-900 text-sm font-bold">
-                A
-              </span>
-              <span className="text-[15px] font-semibold text-white">ArtisansBF</span>
+            <Link href={ROUTES.HOME} className="inline-flex items-center bg-white rounded-md p-1.5 mb-4">
+              <img src="/logo_zoom.png" alt="ArtisanBF" className="h-8 w-8 object-contain" />
             </Link>
             <p className="text-sm leading-relaxed max-w-xs">
               L&apos;annuaire géolocalisé des artisans du Burkina Faso. Trouvez le bon

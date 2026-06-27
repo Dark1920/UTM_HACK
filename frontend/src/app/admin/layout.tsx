@@ -45,11 +45,8 @@ export default function AdminLayout({
           {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
         <div className="flex items-center gap-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-stone-900 text-white text-sm font-bold">
-            A
-          </span>
-          <span className="text-[15px] font-semibold text-stone-900">ArtisansBF</span>
-          <span className="ml-1.5 px-2 py-0.5 bg-error-50 text-error-700 text-xs font-medium rounded-md border border-error-200">
+          <img src="/logo_zoom.png" alt="ArtisanBF" className="h-9 w-9 object-contain" />
+          <span className="ml-1 px-2 py-0.5 bg-error-50 text-error-700 text-xs font-medium rounded-md border border-error-200">
             Admin
           </span>
         </div>

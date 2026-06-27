@@ -44,11 +44,8 @@ export default function DashboardLayout({
         >
           {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
-        <div className="flex items-center gap-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-stone-900 text-white text-sm font-bold">
-            A
-          </span>
-          <span className="text-[15px] font-semibold text-stone-900">ArtisansBF</span>
+        <div className="flex items-center">
+          <img src="/logo_zoom.png" alt="ArtisanBF" className="h-9 w-9 object-contain" />
         </div>
         <div className="ml-auto flex items-center gap-2.5">
           <div className="h-8 w-8 rounded-md bg-stone-900 flex items-center justify-center">
