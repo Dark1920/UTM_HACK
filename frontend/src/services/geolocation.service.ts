@@ -15,14 +15,40 @@ const OUAGADOUGOU_CENTER: Coordinates = {
 
 export const geolocationService = {
   async getCurrentPosition(): Promise<GeolocationResult> {
-    await new Promise(r => setTimeout(r, 500));
-    return {
-      coordinates: {
-        latitude: OUAGADOUGOU_CENTER.latitude + (Math.random() - 0.5) * 0.02,
-        longitude: OUAGADOUGOU_CENTER.longitude + (Math.random() - 0.5) * 0.02,
-      },
-      accuracy: Math.floor(Math.random() * 50) + 10,
-    };
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Géolocalisation non supportée'));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          resolve({
+            coordinates: {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            },
+            accuracy: position.coords.accuracy,
+          });
+        },
+        (error) => {
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              reject(new Error('Autorisation de géolocalisation refusée'));
+              break;
+            case error.POSITION_UNAVAILABLE:
+              reject(new Error('Position non disponible'));
+              break;
+            case error.TIMEOUT:
+              reject(new Error('Délai de géolocalisation dépassé'));
+              break;
+            default:
+              reject(new Error('Erreur de géolocalisation'));
+          }
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+      );
+    });
   },
 
   async getDefaultCoordinates(): Promise<Coordinates> {

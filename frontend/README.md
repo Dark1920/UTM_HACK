@@ -105,8 +105,13 @@ src/
 | Resume de commentaires | `/api/ai/summarize` → backend → Groq | Connecte |
 | Detection de spam | `/api/ai/analyze` → backend → Groq | Connecte |
 | Photos | `/api/photos` → Pexels | Connecte |
-| Recherche vocale | `/api/ai/voice-search` → backend → Whisper | Backend uniquement |
-| Transcription audio | `/api/ai/speech-to-text` → backend → Whisper | Backend uniquement |
+| Recherche vocale | `voiceSearchService` → `/api/ai/voice-search` → backend → Whisper + LLM | Connecte |
+| Transcription audio | `voiceSearchService.transcribe()` → `/api/ai/speech-to-text` → backend → Whisper | Connecte |
+| Geolocalisation | `geolocationService` → browser Geolocation API | Connecte |
+| Admin CRUD | `adminService` | Mock (pas de backend admin) |
+| Statistiques | `statistiquesService` | Mock (pas de backend analytics) |
+| Upload | `uploadService` | Mock (pas de backend upload) |
+| Favoris | `favorisService` | Local (localStorage) |
 | Admin CRUD | Mock | Non connecte |
 | Statistiques | Mock | Non connecte |
 | Upload fichiers | Mock | Non connecte |
@@ -144,10 +149,39 @@ Client (browser)
   │     └── fetch('/api/ai/analyze')
   │           └── [proxy rewrites] → backend:3001
   │
+  ├── voiceSearchService.search(audio)
+  │     └── fetch('/api/ai/voice-search', FormData)
+  │           └── [proxy rewrites] → backend:3001 → Whisper + LLM
+  │
+  ├── voiceSearchService.transcribe(audio)
+  │     └── fetch('/api/ai/speech-to-text', FormData)
+  │           └── [proxy rewrites] → backend:3001 → Whisper
+  │
+  ├── geolocationService.getCurrentPosition()
+  │     └── navigator.geolocation.getCurrentPosition()
+  │
   └── usePexelsPhotos()
         └── fetch('/api/photos?query=...')
               └── Pexels API
 ```
+
+## Hooks disponibles
+
+| Hook | Description |
+|---|---|
+| `useAuth` | Etat d'authentification (login/logout/user) |
+| `useCommerce` | Donnees commerces (load/select/create/update/delete) |
+| `useComments` | Avis (load/add/delete) |
+| `useSearch` | Recherche avec filtres |
+| `useVoiceSearch` | Enregistrement micro + recherche vocale |
+| `useSpeechToText` | Enregistrement micro + transcription |
+| `useGeolocation` | Position GPS + watch |
+| `useFavorites` | Favoris (localStorage) |
+| `usePexelsPhotos` | Photos Pexels |
+| `useMap` | Integration Leaflet |
+| `usePagination` | Pagination |
+| `useDebounce` | Debounce |
+| `useOffline` | Detection hors ligne |
 
 ## Tests
 
