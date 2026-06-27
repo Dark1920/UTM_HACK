@@ -38,6 +38,15 @@ function saveUser(user: User | null) {
   }
 }
 
+function saveToken(token: string | null) {
+  if (typeof window === 'undefined') return;
+  if (token) {
+    localStorage.setItem('supabase_token', token);
+  } else {
+    localStorage.removeItem('supabase_token');
+  }
+}
+
 export const useAuthStore = create<AuthState>((set) => ({
   user: loadUser(),
   isLoading: false,
@@ -46,8 +55,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (email: string, password: string) => {
     set({ isLoading: true });
     try {
-      const { user } = await authService.login(email, password);
+      const { user, token } = await authService.login(email, password);
       saveUser(user);
+      saveToken(token);
       set({ user, isLoading: false, isAuthenticated: true });
     } catch (error) {
       set({ isLoading: false });
@@ -58,8 +68,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   register: async (data) => {
     set({ isLoading: true });
     try {
-      const { user } = await authService.register(data);
+      const { user, token } = await authService.register(data);
       saveUser(user);
+      saveToken(token);
       set({ user, isLoading: false, isAuthenticated: true });
     } catch (error) {
       set({ isLoading: false });
@@ -70,6 +81,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: () => {
     authService.logout();
     saveUser(null);
+    saveToken(null);
     set({ user: null, isAuthenticated: false });
   },
 

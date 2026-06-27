@@ -29,6 +29,7 @@ export async function POST(request: Request) {
         email: data.user.email,
         nom: profil?.nom || data.user.user_metadata?.nom || '',
         prenom: profil?.prenom || data.user.user_metadata?.prenom || '',
+        telephone: profil?.telephone || data.user.user_metadata?.telephone || undefined,
         role: profil?.role || data.user.user_metadata?.role || 'citoyen',
       },
       token: data.session.access_token,

@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     root: path.resolve(__dirname, '..'),
   },
   async rewrites() {
-    const backend = 'http://localhost:3001';
+    const backend = process.env.BACKEND_URL || 'http://localhost:3001';
     return [
       { source: '/api/ai/:path*',        destination: `${backend}/api/ai/:path*` },
       { source: '/api/commerces/:path*', destination: `${backend}/api/commerces/:path*` },
@@ -16,6 +16,7 @@ const nextConfig: NextConfig = {
       { source: '/api/avis',             destination: `${backend}/api/avis` },
       { source: '/api/auth/:path*',      destination: `${backend}/api/auth/:path*` },
       { source: '/api/recherche',        destination: `${backend}/api/recherche` },
+      { source: '/api/geocoding',        destination: `${backend}/api/geocoding` },
     ];
   },
 };

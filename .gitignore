@@ -17,4 +17,6 @@ AGENTS.md
 frontend/CLAUDE.md
 .next
 .env
+!.env.example
+!.env.local.example
 .env.local

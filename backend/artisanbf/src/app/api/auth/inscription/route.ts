@@ -4,7 +4,7 @@ import { createServiceClient } from '@/lib/supabase/api'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { email, password, nom, prenom, role = 'citoyen' } = body
+    const { email, password, nom, prenom, telephone, role = 'citoyen' } = body
 
     if (!email || !password || !nom) {
       return Response.json({ error: 'email, password et nom requis' }, { status: 400 })
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { nom, prenom, role } },
+      options: { data: { nom, prenom, telephone, role } },
     })
 
     if (authError) {
@@ -27,6 +27,7 @@ export async function POST(request: Request) {
         id: authData.user.id,
         nom,
         prenom: prenom || '',
+        telephone: telephone || null,
         role,
       })
     }
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
         email: authData.user.email,
         nom,
         prenom,
+        telephone,
         role,
       } : null,
       token: authData.session?.access_token || '',
