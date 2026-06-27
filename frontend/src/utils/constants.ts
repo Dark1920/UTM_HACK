@@ -1,0 +1,9 @@
+export const MAX_PHOTOS_PAR_COMMERCE = 3;
+export const MAX_LONGUEUR_COMMENTAIRE = 1000;
+export const MIN_LONGUEUR_COMMENTAIRE = 3;
+export const NOTE_MIN = 1;
+export const NOTE_MAX = 5;
+export const RAYON_DEFAUT_KM = 10;
+export const PAGE_SIZE = 12;
+export const DUREE_CACHE_MS = 5 * 60 * 1000;
+export const LIMITE_REQUETES = 10;

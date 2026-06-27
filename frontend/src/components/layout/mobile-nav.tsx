@@ -1,0 +1,44 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Home, Search, AlertTriangle, Heart, User } from 'lucide-react';
+import { ROUTES } from '@/constants/routes';
+
+const navItems = [
+  { href: ROUTES.HOME, icon: Home, label: 'Accueil' },
+  { href: ROUTES.ANNUAIRE, icon: Search, label: 'Annuaire' },
+  { href: ROUTES.URGENCE, icon: AlertTriangle, label: 'Urgence', urgent: true },
+  { href: ROUTES.FAVORIS, icon: Heart, label: 'Favoris' },
+  { href: ROUTES.CONNEXION, icon: User, label: 'Profil' },
+];
+
+export default function MobileNav() {
+  const pathname = usePathname();
+
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-stone-200 lg:hidden pb-[env(safe-area-inset-bottom)]">
+      <div className="grid grid-cols-5 h-16">
+        {navItems.map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex flex-col items-center justify-center gap-1 transition-colors ${
+                isActive
+                  ? item.urgent
+                    ? 'text-error-600'
+                    : 'text-stone-900'
+                  : 'text-stone-400'
+              }`}
+            >
+              <item.icon className={`h-5 w-5 ${item.urgent && !isActive ? 'text-error-400' : ''}`} />
+              <span className="text-[10px] font-medium">{item.label}</span>
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
