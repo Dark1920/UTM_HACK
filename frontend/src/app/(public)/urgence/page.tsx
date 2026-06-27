@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { AlertTriangle, MapPin, Phone, MessageCircle, Locate, Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { AlertTriangle, Phone, MessageCircle, Locate, Loader2 } from 'lucide-react';
 import { mockCommerces, mockCategories } from '@/lib/mock-data';
+import MapLeaflet from '@/components/maps/map-leaflet';
 
 interface GeolocationState {
   lat: number;
@@ -25,6 +27,7 @@ function getDistance(lat1: number, lon1: number, lat2: number, lon2: number): nu
 }
 
 export default function UrgencePage() {
+  const router = useRouter();
   const [geo, setGeo] = useState<GeolocationState>({
     lat: 0,
     lng: 0,
@@ -137,17 +140,18 @@ export default function UrgencePage() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Map area */}
-          <div className="rounded-lg border border-stone-200 h-72 sm:h-[28rem] flex items-center justify-center lg:sticky lg:top-20">
-            <div className="text-center text-stone-400">
-              <MapPin className="h-8 w-8 mx-auto mb-3" />
-              <p className="font-medium text-stone-600 text-sm">Carte des artisans à proximité</p>
-              {userLocated && (
-                <p className="text-xs mt-1">
-                  Position : {geo.lat.toFixed(4)}, {geo.lng.toFixed(4)}
-                </p>
-              )}
-            </div>
-          </div>
+          <MapLeaflet
+            className="h-72 sm:h-[28rem] w-full lg:sticky lg:top-20"
+            center={userLocated ? [geo.lat, geo.lng] : undefined}
+            zoom={13}
+            userLocation={userLocated ? { latitude: geo.lat, longitude: geo.lng } : null}
+            markers={nearbyCommerces.map((c) => ({
+              id: c.id,
+              position: [c.latitude, c.longitude],
+              popup: c.nom,
+            }))}
+            onMarkerClick={(id) => router.push(`/commerce/${id}`)}
+          />
 
           {/* Nearby artisans list */}
           <div>

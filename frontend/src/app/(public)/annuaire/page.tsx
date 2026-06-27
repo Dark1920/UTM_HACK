@@ -2,10 +2,12 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Search, MapPin, Star, Phone, ChevronLeft, ChevronRight, Map as MapIcon, List } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
 import { mockCommerces, mockCategories } from '@/lib/mock-data';
 import { CommercePhoto } from '@/components/commerces/commerce-photo';
+import MapLeaflet from '@/components/maps/map-leaflet';
 import type { Commerce } from '@/types/commerce';
 
 const cities = ['Toutes', 'Ouagadougou', 'Bobo-Dioulasso', 'Koudougou', 'Banfora', 'Ouahigouya'];
@@ -52,6 +54,7 @@ function ResultCard({ commerce }: { commerce: Commerce }) {
 }
 
 export default function AnnuairePage() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState('Toutes');
@@ -196,13 +199,15 @@ export default function AnnuairePage() {
             </div>
 
             {showMap ? (
-              <div className="rounded-lg border border-stone-200 h-[560px] flex items-center justify-center">
-                <div className="text-center text-stone-400">
-                  <MapPin className="h-8 w-8 mx-auto mb-3" />
-                  <p className="font-medium text-stone-600 text-sm">Carte interactive</p>
-                  <p className="text-xs mt-1">Intégration Leaflet bientôt disponible</p>
-                </div>
-              </div>
+              <MapLeaflet
+                className="h-[560px] w-full"
+                markers={filtered.map((c) => ({
+                  id: c.id,
+                  position: [c.latitude, c.longitude],
+                  popup: c.nom,
+                }))}
+                onMarkerClick={(id) => router.push(ROUTES.COMMERCE(id))}
+              />
             ) : paginated.length === 0 ? (
               <div className="text-center py-20 border border-dashed border-stone-300 rounded-lg">
                 <MapPin className="h-8 w-8 text-stone-300 mx-auto mb-4" />

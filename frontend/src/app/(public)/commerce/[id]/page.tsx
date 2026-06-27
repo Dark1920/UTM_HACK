@@ -8,6 +8,7 @@ import { getCommerceById, mockCommerces, mockCategories, mockCommentaires, mockC
 import { usePexelsPhotos } from '@/hooks/usePexelsPhotos';
 import { CATEGORY_PEXELS_QUERY } from '@/constants/pexels';
 import { CommercePhoto } from '@/components/commerces/commerce-photo';
+import MapLeaflet from '@/components/maps/map-leaflet';
 
 function PhotoGallery({ photos: fallbackPhotos, name, categorieId }: { photos: string[]; name: string; categorieId: string }) {
   const [selected, setSelected] = useState(0);
@@ -151,13 +152,12 @@ export default function CommerceDetailPage({ params }: { params: Promise<{ id: s
             </div>
 
             <div className="rounded-lg border border-stone-200 overflow-hidden">
-              <div className="h-64 bg-stone-50 flex items-center justify-center">
-                <div className="text-center text-stone-400">
-                  <MapPin className="h-7 w-7 mx-auto mb-2" />
-                  <p className="font-medium text-sm">Carte</p>
-                  <p className="text-xs mt-1">Lat : {commerce.latitude}, Lng : {commerce.longitude}</p>
-                </div>
-              </div>
+              <MapLeaflet
+                className="h-64 w-full"
+                center={[commerce.latitude, commerce.longitude]}
+                zoom={15}
+                markers={[{ id: commerce.id, position: [commerce.latitude, commerce.longitude], popup: commerce.nom }]}
+              />
             </div>
 
             <div className="rounded-lg border border-stone-200 p-6">
