@@ -1,9 +1,5 @@
 import { NextResponse } from "next/server"
-<<<<<<< HEAD
 import { ai } from "@/AI/lib/ai-client"
-=======
-import { getGrokClient } from "@/AI/lib/ai-client"
->>>>>>> 66b021b (Fix prompts and AI routes)
 import { ANALYZE_SYSTEM } from "@/AI/lib/ai-prompts"
 import { extractJson } from "@/AI/lib/ai-parser"
 import type { ReviewAnalysis, AnalyzeRequest } from "@/AI/lib/ai-schemas"
@@ -12,10 +8,6 @@ const MIN_LENGTH = 2
 
 function preValidate(commentaire: string): boolean {
   const cleaned = commentaire.trim()
-<<<<<<< HEAD
-=======
-
->>>>>>> 66b021b (Fix prompts and AI routes)
   if (cleaned.length < MIN_LENGTH) return false
   if ((cleaned.match(/#/g) || []).length > cleaned.length * 0.5) return false
   return true
@@ -44,13 +36,8 @@ export async function POST(req: Request) {
       return NextResponse.json(DEFAULT_RESULT, { status: 200 })
     }
 
-<<<<<<< HEAD
     const response = await ai.chat.completions.create({
       model: process.env.AI_MODEL || "llama-3.1-8b-instant",
-=======
-    const response = await getGrokClient().chat.completions.create({
-      model: process.env.GROK_MODEL || "grok-beta",
->>>>>>> 66b021b (Fix prompts and AI routes)
       messages: [
         { role: "system", content: ANALYZE_SYSTEM },
         { role: "user", content: `Analyse ce commentaire :\n\n${commentaire}` },
