@@ -1,10 +1,21 @@
 import type { Commentaire } from '@/types/commentaire';
 
+const API = '/api/avis';
+
+function authHeaders(json = false): Record<string, string> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('supabase_token') : null;
+  const headers: Record<string, string> = {};
+  if (json) headers['Content-Type'] = 'application/json';
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return headers;
+}
+
 export const commentaireService = {
   async getByCommerceId(commerceId: string): Promise<Commentaire[]> {
-    const res = await fetch(`/api/avis?commerceId=${encodeURIComponent(commerceId)}`);
+    const res = await fetch(`${API}?commerceId=${encodeURIComponent(commerceId)}`);
     if (!res.ok) throw new Error('Erreur chargement avis');
-    return res.json();
+    const data = await res.json();
+    return data.avis || [];
   },
 
   async create(data: {
@@ -13,11 +24,11 @@ export const commentaireService = {
     auteurId: string;
     commerceId: string;
   }): Promise<Commentaire> {
-    const res = await fetch('/api/avis', {
+    const res = await fetch(API, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(true),
       body: JSON.stringify({
-        commerceId: data.commerceId,
+        commerce_id: data.commerceId,
         texte: data.texte,
         note: data.note,
       }),
@@ -27,15 +38,10 @@ export const commentaireService = {
   },
 
   async delete(id: string): Promise<void> {
-    const res = await fetch(`/api/avis/${encodeURIComponent(id)}`, {
+    const res = await fetch(`${API}/${encodeURIComponent(id)}`, {
       method: 'DELETE',
+      headers: authHeaders(),
     });
     if (!res.ok) throw new Error('Erreur suppression avis');
-  },
-
-  async getAll(): Promise<Commentaire[]> {
-    const res = await fetch('/api/avis');
-    if (!res.ok) throw new Error('Erreur chargement avis');
-    return res.json();
   },
 };

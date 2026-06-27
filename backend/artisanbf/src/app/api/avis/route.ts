@@ -1,55 +1,24 @@
 // @ts-nocheck
-/**
- * @swagger
- * /api/avis:
- *   get:
- *     summary: Liste les avis d'un commerce
- *     description: Retourne tous les avis pour un commerce spécifique avec pagination
- *     tags: [Avis]
- *     parameters:
- *       - in: query
- *         name: commerce_id
- *         required: true
- *         schema:
- *           type: string
- *         description: ID du commerce
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 10
- *     responses:
- *       200:
- *         description: Liste des avis
- */
+import { createServiceClient, getUser } from '@/lib/supabase/api'
+
 export async function GET(request: Request) {
   try {
-    const { createClient } = await import('@/lib/supabase/server')
-    const supabase = createClient()
-
+    const supabase = createServiceClient()
     const { searchParams } = new URL(request.url)
-    const commerce_id = searchParams.get('commerce_id')
+    const commerce_id = searchParams.get('commerce_id') || searchParams.get('commerceId')
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
 
     if (!commerce_id) {
-      return Response.json(
-        { error: 'Le paramètre commerce_id est requis' },
-        { status: 400 }
-      )
+      return Response.json({ error: 'commerce_id requis' }, { status: 400 })
     }
 
     const from = (page - 1) * limit
     const to = from + limit - 1
 
-    const { data: avis, error, count } = await supabase
+    const { data, error, count } = await supabase
       .from('avis')
-      .select('*', { count: 'exact' })
+      .select('*, utilisateurs(id, nom)', { count: 'exact' })
       .eq('commerce_id', commerce_id)
       .range(from, to)
       .order('created_at', { ascending: false })
@@ -58,165 +27,117 @@ export async function GET(request: Request) {
       return Response.json({ error: error.message }, { status: 500 })
     }
 
-    return Response.json({
-      avis,
-      total: count,
-      page,
-      limit
+    const avis = (data || []).map((row) => {
+      const user = row.utilisateurs
+      return {
+        id: row.id,
+        texte: row.commentaire,
+        note: row.note,
+        auteurId: row.user_id,
+        auteur: user ? { nom: user.nom } : undefined,
+        commerceId: row.commerce_id,
+        iaScore: row.score_sentiment,
+        estSpam: row.is_spam,
+        estModer: !row.is_spam,
+        sentiment: row.sentiment,
+        dateCreation: row.created_at,
+      }
     })
+
+    return Response.json({ avis, total: count, page, limit })
   } catch (error) {
-    return Response.json(
-      { error: 'Erreur interne du serveur' },
-      { status: 500 }
-    )
+    return Response.json({ error: 'Erreur interne du serveur' }, { status: 500 })
   }
 }
 
-/**
- * @swagger
- * /api/avis:
- *   post:
- *     summary: Créer un avis avec analyse IA automatique
- *     description: Crée un nouvel avis et l'analyse automatiquement avec l'IA
- *     tags: [Avis]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [commerce_id, note, commentaire]
- *             properties:
- *               commerce_id:
- *                 type: string
- *                 example: "uuid-du-commerce"
- *               note:
- *                 type: integer
- *                 minimum: 1
- *                 maximum: 5
- *                 example: 4
- *               commentaire:
- *                 type: string
- *                 example: "Très bon service, je recommande ce mécanicien"
- *     responses:
- *       201:
- *         description: Avis créé avec analyse IA
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 avis:
- *                   type: object
- *                 analyse_ia:
- *                   type: object
- */
 export async function POST(request: Request) {
   try {
-    const { createClient } = await import('@/lib/supabase/server')
-    
-    // Utiliser le service role key pour bypasser RLS
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    
-    const { createClient: createServiceClient } = await import('@supabase/supabase-js')
-    const supabase = createServiceClient(supabaseUrl!, supabaseKey!)
-
-    // Récupérer l'utilisateur connecté pour l'associer à l'avis
-    const client = createClient()
-    const { data: { user }, error: authError } = await client.auth.getUser()
-    
-    if (authError || !user) {
-      return Response.json(
-        { error: 'Vous devez être connecté pour créer un avis' },
-        { status: 401 }
-      )
+    const user = await getUser(request)
+    if (!user) {
+      return Response.json({ error: 'Non autorisé' }, { status: 401 })
     }
 
     const body = await request.json()
-    const { commerce_id, note, commentaire } = body
+    const { commerce_id, texte, note } = body
 
-    if (!commerce_id || !note || !commentaire) {
-      return Response.json(
-        { error: 'Les champs commerce_id, note et commentaire sont requis' },
-        { status: 400 }
-      )
+    if (!commerce_id || !texte || !note) {
+      return Response.json({ error: 'commerce_id, texte et note requis' }, { status: 400 })
     }
 
-    if (note < 1 || note > 5) {
-      return Response.json(
-        { error: 'La note doit être entre 1 et 5' },
-        { status: 400 }
-      )
-    }
-
-    // Analyse IA du commentaire
+    // Analyse IA
     let analyseIA = null
     try {
-      const AI_BASE_URL = process.env.AI_BASE_URL || 'https://api.groq.com/openai/v1'
-      const analyzeResponse = await fetch(`${AI_BASE_URL}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.AI_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: process.env.AI_MODEL || 'llama-3.1-8b-instant',
-          messages: [
-            {
-              role: 'system',
-              content: `Tu es un expert en analyse de sentiments. Analyse ce commentaire et retourne UNIQUEMENT un JSON avec:
-              - pertinent: boolean (est-ce un avis légitime ou spam?)
-              - note: number (1-5, la note implicite dans le commentaire)
-              - sentiment: string (positif/neutre/negatif)
-              - criteres: { qualite: number, professionnalisme: number, rapidite: number, prix: number }
-              - points_forts: string[]
-              - points_faibles: string[]
-              - justification: string`
-            },
-            {
-              role: 'user',
-              content: commentaire
-            }
-          ],
-          response_format: { type: 'json_object' }
-        })
+      const { ai } = await import('@/lib/ia/client')
+      const { ANALYZE_SYSTEM } = await import('@/lib/ia/prompts')
+      const { extractJson } = await import('@/lib/ia/parser')
+
+      const response = await ai.chat.completions.create({
+        model: process.env.AI_MODEL || 'llama-3.1-8b-instant',
+        messages: [
+          { role: 'system', content: ANALYZE_SYSTEM },
+          { role: 'user', content: `Analyse ce commentaire :\n\n${texte}` },
+        ],
+        temperature: 0.3,
       })
 
-      const aiData = await analyzeResponse.json()
-      analyseIA = JSON.parse(aiData.choices[0].message.content)
+      const content = response.choices[0]?.message?.content
+      if (content) {
+        analyseIA = extractJson(content)
+      }
     } catch (error) {
       console.error('Erreur analyse IA:', error)
     }
 
-    // Création de l'avis avec service role key
-    const { data: avis, error } = await supabase
+    const supabase = createServiceClient()
+    const { data: avis, error: insertError } = await supabase
       .from('avis')
       .insert({
         commerce_id,
         user_id: user.id,
         note,
-        commentaire,
+        commentaire: texte,
         sentiment: analyseIA?.sentiment || 'neutre',
-        score_sentiment: analyseIA?.note || 0,
-        is_spam: analyseIA?.pertinent === false,
-        analyse_ia: analyseIA
+        score_sentiment: analyseIA?.note ? analyseIA.note / 5 : 0,
+        is_spam: analyseIA ? !analyseIA.pertinent : false,
       })
       .select()
       .single()
 
-    if (error) {
-      return Response.json({ error: error.message }, { status: 500 })
+    if (insertError) {
+      return Response.json({ error: insertError.message }, { status: 500 })
+    }
+
+    // Update commerce stats
+    const { data: allAvis } = await supabase
+      .from('avis')
+      .select('note')
+      .eq('commerce_id', commerce_id)
+
+    if (allAvis && allAvis.length > 0) {
+      const avg = allAvis.reduce((sum, a) => sum + a.note, 0) / allAvis.length
+      await supabase
+        .from('commerces')
+        .update({
+          note_moyenne: Math.round(avg * 100) / 100,
+          nombre_avis: allAvis.length,
+        })
+        .eq('id', commerce_id)
     }
 
     return Response.json({
-      avis,
-      analyse_ia: analyseIA
+      id: avis.id,
+      texte: avis.commentaire,
+      note: avis.note,
+      auteurId: avis.user_id,
+      commerceId: avis.commerce_id,
+      iaScore: avis.score_sentiment,
+      estSpam: avis.is_spam,
+      estModer: !avis.is_spam,
+      sentiment: avis.sentiment,
+      dateCreation: avis.created_at,
     }, { status: 201 })
   } catch (error) {
-    return Response.json(
-      { error: 'Erreur interne du serveur' },
-      { status: 500 }
-    )
+    console.error('[/api/avis]', error)
+    return Response.json({ error: 'Erreur interne' }, { status: 500 })
   }
 }

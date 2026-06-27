@@ -9,9 +9,9 @@
   },
   "scripts": {
     "dev": "cd artisanbf && next dev -p 3001",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "build": "cd artisanbf && next build",
+    "start": "cd artisanbf && next start -p 3001",
+    "lint": "cd artisanbf && next lint"
   },
   "repository": {
     "type": "git",
