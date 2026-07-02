@@ -3,7 +3,7 @@
 import { useState, use, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Star, MapPin, Phone, MessageCircle, Heart, ArrowLeft, Send, Share2, Loader2 } from 'lucide-react';
+import { Star, MapPin, Phone, MessageCircle, Heart, ArrowLeft, Send, Share2, Loader2, Sparkles, Mic, Square } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
 import { usePexelsPhotos } from '@/hooks/usePexelsPhotos';
 import { CATEGORY_PEXELS_QUERY } from '@/constants/pexels';
@@ -11,11 +11,19 @@ import { CommercePhoto } from '@/components/commerces/commerce-photo';
 import MapLeaflet from '@/components/maps/map-leaflet';
 import { commerceService } from '@/services/commerce.service';
 import { commentaireService } from '@/services/commentaire.service';
+import { groqService } from '@/services/groq.service';
 import { useAuthStore } from '@/stores/auth.store';
 import { useFavorites } from '@/hooks/useFavorites';
+import { useSpeechToText } from '@/hooks/useSpeechToText';
 import { useToast } from '@/components/ui/toast';
 import type { Commerce } from '@/types/commerce';
 import type { Commentaire } from '@/types/commentaire';
+
+const SENTIMENT_BADGE: Record<'positif' | 'neutre' | 'negatif', { label: string; cls: string }> = {
+  positif: { label: 'Positif', cls: 'bg-success-50 text-success-700' },
+  neutre: { label: 'Neutre', cls: 'bg-stone-100 text-stone-600' },
+  negatif: { label: 'Négatif', cls: 'bg-error-50 text-error-700' },
+};
 
 function PhotoGallery({ photos: fallbackPhotos, name, categorieSlug }: { photos: string[]; name: string; categorieSlug?: string }) {
   const [selected, setSelected] = useState(0);
@@ -77,6 +85,39 @@ export default function CommerceDetailPage({ params }: { params: Promise<{ id: s
   const [reviewRating, setReviewRating] = useState(0);
   const [submitting, setSubmitting] = useState(false);
 
+  const [summary, setSummary] = useState<{ resume: string; points_forts: string[]; points_faibles: string[] } | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+
+  // Dictée vocale de l'avis (backend /api/ai/speech-to-text)
+  const {
+    isRecording: dictRecording,
+    isProcessing: dictProcessing,
+    text: dictText,
+    error: dictError,
+    startRecording: startDictation,
+    stopRecording: stopDictation,
+    reset: resetDictation,
+  } = useSpeechToText();
+
+  // Réponses IA de l'artisan aux avis (backend /api/ai/respond)
+  const [replies, setReplies] = useState<Record<string, string>>({});
+  const [replyingId, setReplyingId] = useState<string | null>(null);
+
+  const handleGenerateReply = useCallback(
+    async (review: Commentaire) => {
+      setReplyingId(review.id);
+      try {
+        const reponse = await groqService.repondreAvis(review.texte, review.note);
+        setReplies((prev) => ({ ...prev, [review.id]: reponse }));
+      } catch (err) {
+        notify('error', err instanceof Error ? err.message : 'Erreur lors de la génération.');
+      } finally {
+        setReplyingId(null);
+      }
+    },
+    [notify]
+  );
+
   useEffect(() => {
     let annule = false;
     // Reset de l'état de chargement quand l'id de route change : volontaire.
@@ -114,6 +155,46 @@ export default function CommerceDetailPage({ params }: { params: Promise<{ id: s
       annule = true;
     };
   }, [id]);
+
+  // Résumé IA des avis (backend /api/ai/summarize) — déclenché dès qu'il y a
+  // assez de commentaires exploitables.
+  useEffect(() => {
+    const textes = reviews.map((r) => r.texte).filter((t) => t && t.trim().length >= 2);
+    if (textes.length < 2) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSummary(null);
+      return;
+    }
+    let annule = false;
+    setSummaryLoading(true);
+    groqService
+      .genererResume(textes)
+      .then((res) => {
+        if (!annule) setSummary(res);
+      })
+      .catch(() => {
+        if (!annule) setSummary(null);
+      })
+      .finally(() => {
+        if (!annule) setSummaryLoading(false);
+      });
+    return () => {
+      annule = true;
+    };
+  }, [reviews]);
+
+  // Injecte le texte dicté dans le champ d'avis dès qu'une transcription arrive.
+  useEffect(() => {
+    if (!dictText) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setReviewText((prev) => (prev.trim() ? `${prev.trim()} ${dictText}` : dictText));
+    resetDictation();
+  }, [dictText, resetDictation]);
+
+  // Signale une erreur de dictée à l'utilisateur.
+  useEffect(() => {
+    if (dictError) notify('error', dictError);
+  }, [dictError, notify]);
 
   const handleSubmitReview = useCallback(
     async (e: React.FormEvent) => {
@@ -167,6 +248,7 @@ export default function CommerceDetailPage({ params }: { params: Promise<{ id: s
   }
 
   const categoryNom = commerce.categorie?.nom;
+  const isOwner = !!user && !!commerce.artisanId && user.id === commerce.artisanId;
 
   return (
     <div className="min-h-screen pb-24 lg:pb-8">
@@ -265,6 +347,63 @@ export default function CommerceDetailPage({ params }: { params: Promise<{ id: s
               </div>
             )}
 
+            {(summaryLoading || summary) && (
+              <div className="rounded-lg border border-stone-200 p-6 bg-primary-50/30">
+                <div className="flex items-center gap-2 mb-3">
+                  <Sparkles className="h-4 w-4 text-primary-600" />
+                  <h2 className="font-semibold text-stone-900">Résumé des avis</h2>
+                  <span className="text-[10px] font-medium uppercase tracking-wide text-stone-500 border border-stone-300 rounded px-1.5 py-0.5">
+                    IA
+                  </span>
+                </div>
+
+                {summaryLoading ? (
+                  <div className="flex items-center gap-2 text-sm text-stone-500">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Génération du résumé…
+                  </div>
+                ) : summary ? (
+                  <>
+                    <p className="text-sm text-stone-700 leading-relaxed">{summary.resume}</p>
+                    {(summary.points_forts.length > 0 || summary.points_faibles.length > 0) && (
+                      <div className="grid sm:grid-cols-2 gap-5 mt-4">
+                        {summary.points_forts.length > 0 && (
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-wide text-success-700 mb-2">
+                              Points forts
+                            </p>
+                            <ul className="space-y-1.5">
+                              {summary.points_forts.map((p, i) => (
+                                <li key={i} className="text-sm text-stone-600 flex gap-1.5">
+                                  <span className="text-success-600 font-semibold">+</span>
+                                  {p}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {summary.points_faibles.length > 0 && (
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-wide text-error-700 mb-2">
+                              Points faibles
+                            </p>
+                            <ul className="space-y-1.5">
+                              {summary.points_faibles.map((p, i) => (
+                                <li key={i} className="text-sm text-stone-600 flex gap-1.5">
+                                  <span className="text-error-600 font-semibold">−</span>
+                                  {p}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                ) : null}
+              </div>
+            )}
+
             <div className="rounded-lg border border-stone-200 p-6">
               <h2 className="font-semibold text-stone-900 mb-4">Avis ({reviews.length})</h2>
 
@@ -290,14 +429,36 @@ export default function CommerceDetailPage({ params }: { params: Promise<{ id: s
                   rows={3}
                   className="w-full px-3 py-2 border border-stone-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-stone-900 focus:border-stone-900 resize-none"
                 />
-                <button
-                  type="submit"
-                  disabled={!reviewText.trim() || reviewRating === 0 || submitting}
-                  className="mt-2.5 inline-flex items-center gap-2 h-9 px-4 bg-stone-900 text-white text-sm font-medium rounded-md hover:bg-stone-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                >
-                  {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-                  Envoyer
-                </button>
+                <div className="mt-2.5 flex items-center gap-2">
+                  <button
+                    type="submit"
+                    disabled={!reviewText.trim() || reviewRating === 0 || submitting}
+                    className="inline-flex items-center gap-2 h-9 px-4 bg-stone-900 text-white text-sm font-medium rounded-md hover:bg-stone-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                    Envoyer
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => (dictRecording ? stopDictation() : startDictation())}
+                    disabled={dictProcessing}
+                    aria-label={dictRecording ? 'Arrêter la dictée' : 'Dicter au micro'}
+                    className={`inline-flex items-center gap-2 h-9 px-3 text-sm font-medium rounded-md border transition-colors disabled:opacity-50 ${
+                      dictRecording
+                        ? 'border-error-300 bg-error-50 text-error-700'
+                        : 'border-stone-300 text-stone-600 hover:border-stone-400'
+                    }`}
+                  >
+                    {dictProcessing ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : dictRecording ? (
+                      <Square className="h-3.5 w-3.5 fill-current" />
+                    ) : (
+                      <Mic className="h-3.5 w-3.5" />
+                    )}
+                    {dictProcessing ? 'Transcription…' : dictRecording ? 'Arrêter' : 'Dicter'}
+                  </button>
+                </div>
               </form>
 
               <div className="space-y-4">
@@ -327,11 +488,65 @@ export default function CommerceDetailPage({ params }: { params: Promise<{ id: s
                               ))}
                             </div>
                           </div>
-                          <span className="text-xs text-stone-400 ml-auto">
-                            {new Date(review.dateCreation).toLocaleDateString('fr-FR')}
-                          </span>
+                          <div className="ml-auto flex items-center gap-2">
+                            {review.sentiment && (
+                              <span
+                                className={`text-[10px] font-medium uppercase tracking-wide px-1.5 py-0.5 rounded ${SENTIMENT_BADGE[review.sentiment].cls}`}
+                                title="Sentiment détecté par l'IA"
+                              >
+                                {SENTIMENT_BADGE[review.sentiment].label}
+                              </span>
+                            )}
+                            <span className="text-xs text-stone-400">
+                              {new Date(review.dateCreation).toLocaleDateString('fr-FR')}
+                            </span>
+                          </div>
                         </div>
                         <p className="text-sm text-stone-600 ml-11">{review.texte}</p>
+
+                        {isOwner && (
+                          <div className="ml-11 mt-2.5">
+                            {replies[review.id] ? (
+                              <div className="rounded-md border border-stone-200 bg-primary-50/40 p-3">
+                                <p className="text-[10px] font-medium uppercase tracking-wide text-stone-400 mb-1 flex items-center gap-1">
+                                  <Sparkles className="h-3 w-3" /> Réponse suggérée
+                                </p>
+                                <p className="text-sm text-stone-700 leading-relaxed">{replies[review.id]}</p>
+                                <div className="flex items-center gap-3 mt-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => navigator.clipboard?.writeText(replies[review.id])}
+                                    className="text-xs font-medium text-stone-600 hover:text-stone-900"
+                                  >
+                                    Copier
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleGenerateReply(review)}
+                                    disabled={replyingId === review.id}
+                                    className="text-xs font-medium text-stone-500 hover:text-stone-900 disabled:opacity-50"
+                                  >
+                                    Régénérer
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleGenerateReply(review)}
+                                disabled={replyingId === review.id}
+                                className="inline-flex items-center gap-1.5 text-xs font-medium text-stone-600 hover:text-stone-900 disabled:opacity-50"
+                              >
+                                {replyingId === review.id ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Sparkles className="h-3 w-3" />
+                                )}
+                                Répondre avec l&apos;IA
+                              </button>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   })

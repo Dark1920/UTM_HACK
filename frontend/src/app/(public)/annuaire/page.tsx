@@ -91,6 +91,8 @@ export default function AnnuairePage() {
     const categoryId = resolveCategoryId(categorieParam, categories);
 
     if (categoryId) {
+      // Pré-sélection depuis ?categorie= une fois les catégories chargées : volontaire.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedCategory(categoryId);
       setCurrentPage(1);
     }
@@ -120,6 +122,8 @@ export default function AnnuairePage() {
       router.push(`${ROUTES.URGENCE}${params.toString() ? `?${params.toString()}` : ''}`);
       toast('success', 'Urgence détectée, redirection vers le mode urgence.');
     } else {
+      // Application du résultat de recherche vocale à l'annuaire : volontaire.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSearchQuery(result.texte || searchQuery);
       setSelectedCategory(categoryId);
       setCurrentPage(1);

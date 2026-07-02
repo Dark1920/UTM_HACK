@@ -17,7 +17,7 @@ ArtisanBF connecte les artisans à leurs clients via un annuaire géolocalisé, 
 
 > ⚠️ Le backend est à la racine `backend/` (le nom **de package** est `artisanbf`). Il n'existe **pas** de dossier `backend/artisanbf/`.
 
-Le frontend communique avec le backend via des **rewrites Next.js** (proxy) configurés dans `frontend/next.config.ts` (env `NEXT_PUBLIC_BACKEND_URL`, avec compatibilité `BACKEND_URL`). Sont proxyfiés : `/api/ai/*`, `/api/commerces`, `/api/categories`, `/api/avis/*`, `/api/auth/*`, `/api/recherche`, `/api/geocoding`. Seul `/api/photos` (Pexels) est servi localement par le frontend.
+Le frontend communique avec le backend via des **rewrites Next.js** (proxy) configurés dans `frontend/next.config.ts` (env `NEXT_PUBLIC_BACKEND_URL`, avec compatibilité `BACKEND_URL`). Sont proxyfiés : `/api/ai/*`, `/api/commerces`, `/api/categories`, `/api/avis/*`, `/api/auth/*`, `/api/recherche`, `/api/geocoding`, `/api/upload`. Seul `/api/photos` (Pexels) est servi localement par le frontend.
 
 ## Base de données (Supabase)
 
@@ -27,8 +27,14 @@ Le schéma est versionné dans `backend/supabase/migrations/` (ordre = dépendan
 - `001_create_categories.sql`
 - `002_create_commerces.sql`
 - `003_create_avis.sql`
+- `004_storage_bucket.sql` — bucket Storage `commerces` (photos, utilisé par `/api/upload`)
+- `005_seed_data.sql` — catégories + commerces à Ouagadougou
+- `006_admin_module.sql` — modération : `utilisateurs.est_actif`, `avis.approuve`, table `signalements`
+- `007_seed_users_cities_avis.sql` — utilisateurs de démo, commerces multi-villes (Bobo, Koudougou, Banfora, Ouahigouya, Fada) associés à des artisans, et avis
 
-> Les migrations créent le schéma mais aucune donnée : la base est vide au premier démarrage (pas de seed).
+> Migrations idempotentes : rejouables sans erreur (colonnes réconciliées via `ADD COLUMN IF NOT EXISTS`, policies via `DROP POLICY IF EXISTS`, seeds guardés). Appliquer dans l'ordre `000 → 007`.
+>
+> ⚠️ `007` relâche la FK `utilisateurs.id → auth.users` pour permettre des **profils de démo sans compte auth** (données/associations uniquement, pas de login). Les inscriptions réelles restent inchangées.
 
 ## Démarrage (dev)
 
@@ -79,19 +85,22 @@ Copier `backend/.env.example` vers `backend/.env`. Le backend utilise notamment 
 
 ## API (backend)
 
-Routes IA :
-- `POST /api/ai/analyze`
-- `POST /api/ai/summarize`
-- `POST /api/ai/voice-search`
-- `POST /api/ai/speech-to-text`
+Routes IA (Groq — Llama 3.1 + Whisper) :
+- `POST /api/ai/analyze` — analyse d'un commentaire (sentiment, note, pertinence)
+- `POST /api/ai/summarize` — résumé d'une liste d'avis (résumé + points forts/faibles)
+- `POST /api/ai/voice-search` — audio → transcription + intention (catégorie/quartier/urgence)
+- `POST /api/ai/speech-to-text` — audio → texte
+- `POST /api/ai/respond` — génère une réponse d'artisan à un avis (`{ avis, note? }` → `{ reponse }`)
 
 Routes métier :
 - `GET|POST /api/commerces`, `GET|PUT|DELETE /api/commerces/[id]`
+- `POST /api/commerces/[id]/stats` — incrémente un compteur (`{ type: 'vue'|'appel'|'whatsapp' }`)
 - `GET /api/categories`
 - `GET|POST /api/avis`, `DELETE /api/avis/[id]`
 - `POST /api/auth/connexion`, `POST /api/auth/inscription`
 - `GET /api/recherche` (recherche + tri géolocalisé par distance)
 - `GET|POST /api/geocoding` (géocodage direct / inverse via Nominatim)
+- `POST /api/upload` (image → Supabase Storage, renvoie l'URL publique)
 
 Documentation :
 - Swagger statique : `backend/public/swagger.html`

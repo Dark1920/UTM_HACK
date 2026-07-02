@@ -37,7 +37,11 @@ export const groqService = {
     }
   },
 
-  async repondreAvis(_avis: string, _note: number): Promise<string> {
-    return 'Merci pour votre avis.';
+  async repondreAvis(avis: string, note?: number): Promise<string> {
+    const data = await apiFetch<{ reponse: string }>('/api/ai/respond', {
+      method: 'POST',
+      body: { avis, note },
+    });
+    return data.reponse;
   },
 };

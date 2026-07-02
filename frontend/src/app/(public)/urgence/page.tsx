@@ -73,6 +73,8 @@ export default function UrgencePage() {
     const categoryId = resolveCategoryId(categorieParam, categories);
 
     if (categoryId) {
+      // Pré-sélection depuis ?categorie= une fois les catégories chargées : volontaire.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveCategory(categoryId);
     }
   }, [categories]);
