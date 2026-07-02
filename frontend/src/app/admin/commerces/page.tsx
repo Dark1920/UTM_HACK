@@ -1,16 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Trash2, CheckCircle, XCircle, Store } from "lucide-react";
-import { mockCommerces } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-
-const commerces = mockCommerces;
+import { adminService } from "@/services/admin.service";
+import type { Commerce } from "@/types/commerce";
 
 export default function AdminCommercesPage() {
   const [search, setSearch] = useState("");
-  const [items, setItems] = useState(commerces);
+  const [items, setItems] = useState<Commerce[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchCommerces = async () => {
+    try {
+      const res = await adminService.getCommerces({ search: search || undefined });
+      setItems(res.commerces);
+    } catch (err) {
+      console.error("Erreur chargement commerces:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCommerces();
+  }, []);
 
   const filtered = items.filter(
     (c) =>
@@ -18,15 +33,37 @@ export default function AdminCommercesPage() {
       c.ville.toLowerCase().includes(search.toLowerCase())
   );
 
-  const toggleStatus = (id: string) => {
-    setItems((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, estPublic: !c.estPublic } : c))
-    );
+  const toggleStatus = async (id: string) => {
+    try {
+      const res = await adminService.toggleCommercePublic(id);
+      setItems((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, estPublic: res.estPublic } : c))
+      );
+    } catch (err) {
+      console.error("Erreur toggle commerce:", err);
+    }
   };
 
-  const remove = (id: string) => {
-    setItems((prev) => prev.filter((c) => c.id !== id));
+  const remove = async (id: string) => {
+    if (!confirm("Supprimer ce commerce ?")) return;
+    try {
+      await adminService.deleteCommerce(id);
+      setItems((prev) => prev.filter((c) => c.id !== id));
+    } catch (err) {
+      console.error("Erreur suppression commerce:", err);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold text-stone-900 tracking-tight">Gestion des commerces</h1>
+          <p className="text-stone-500 text-sm mt-2">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -44,6 +81,7 @@ export default function AdminCommercesPage() {
           placeholder="Rechercher un commerce..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && fetchCommerces()}
           className="w-full rounded-lg border border-stone-200 bg-white pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400/30 focus:border-primary-400 transition-all duration-200 hover:border-stone-300"
         />
       </div>
@@ -66,7 +104,7 @@ export default function AdminCommercesPage() {
                 <td className="px-5 py-4 font-semibold text-stone-900">{c.nom}</td>
                 <td className="px-5 py-4 text-stone-600">{c.ville}</td>
                 <td className="px-5 py-4">
-                  <Badge variant="warm">{c.categorieId}</Badge>
+                  <Badge variant="warm">{c.categorie?.nom || c.categorieId}</Badge>
                 </td>
                 <td className="px-5 py-4">
                   <Badge variant={c.estPublic ? "success" : "warning"}>

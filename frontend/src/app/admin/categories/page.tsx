@@ -1,17 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
-import { CATEGORIES } from "@/constants/categories";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
+import { adminService, type Categorie } from "@/services/admin.service";
 
 export default function AdminCategoriesPage() {
-  const [items, setItems] = useState(CATEGORIES);
+  const [items, setItems] = useState<Categorie[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ nom: "", slug: "", icone: "", description: "" });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    adminService.getCategories()
+      .then(setItems)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
 
   const openCreate = () => {
     setEditingId(null);
@@ -27,35 +36,59 @@ export default function AdminCategoriesPage() {
     setShowModal(true);
   };
 
-  const save = () => {
+  const save = async () => {
     if (!form.nom || !form.slug) return;
-    if (editingId) {
-      setItems((prev) =>
-        prev.map((c) =>
-          c.id === editingId
-            ? { ...c, nom: form.nom, slug: form.slug, icone: form.icone, description: form.description }
-            : c
-        )
-      );
-    } else {
-      setItems((prev) => [
-        ...prev,
-        {
-          id: `cat-${Date.now()}`,
+    setSaving(true);
+    try {
+      if (editingId) {
+        const updated = await adminService.updateCategory(editingId, {
           nom: form.nom,
           slug: form.slug,
           icone: form.icone,
           description: form.description,
-          nombreCommerces: 0,
-        },
-      ]);
+        });
+        setItems((prev) =>
+          prev.map((c) => (c.id === editingId ? { ...c, ...updated } : c))
+        );
+      } else {
+        const created = await adminService.createCategory({
+          nom: form.nom,
+          slug: form.slug,
+          icone: form.icone,
+          description: form.description,
+        });
+        setItems((prev) => [...prev, created]);
+      }
+      setShowModal(false);
+    } catch (err) {
+      console.error("Erreur sauvegarde catégorie:", err);
+    } finally {
+      setSaving(false);
     }
-    setShowModal(false);
   };
 
-  const remove = (id: string) => {
-    setItems((prev) => prev.filter((c) => c.id !== id));
+  const remove = async (id: string) => {
+    if (!confirm("Supprimer cette catégorie ?")) return;
+    try {
+      await adminService.deleteCategory(id);
+      setItems((prev) => prev.filter((c) => c.id !== id));
+    } catch (err) {
+      console.error("Erreur suppression catégorie:", err);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-stone-900 tracking-tight">Gestion des catégories</h1>
+            <p className="text-stone-500 text-sm mt-2">Chargement...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -92,6 +125,12 @@ export default function AdminCategoriesPage() {
           </div>
         ))}
       </div>
+
+      {items.length === 0 && (
+        <div className="text-center py-16">
+          <p className="text-stone-500 font-medium">Aucune catégorie</p>
+        </div>
+      )}
 
       <Modal
         open={showModal}
@@ -133,7 +172,9 @@ export default function AdminCategoriesPage() {
             <Button variant="outline" onClick={() => setShowModal(false)}>
               Annuler
             </Button>
-            <Button onClick={save}>{editingId ? "Modifier" : "Créer"}</Button>
+            <Button onClick={save} disabled={saving}>
+              {saving ? "Enregistrement..." : editingId ? "Modifier" : "Créer"}
+            </Button>
           </div>
         </div>
       </Modal>

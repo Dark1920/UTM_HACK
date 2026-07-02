@@ -1,76 +1,52 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Trash2, XCircle, CheckCircle, Flag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-
-interface Signalement {
-  id: string;
-  signaleur: string;
-  commentaireTexte: string;
-  commerce: string;
-  raison: string;
-  date: string;
-  statut: "pending" | "resolved" | "dismissed";
-}
-
-const MOCK_SIGNALEMENTS: Signalement[] = [
-  {
-    id: "sr-1",
-    signaleur: "Amadou Ouédraogo",
-    commentaireTexte: "Ce commerce est vraiment excellent, je recommande!",
-    commerce: "Atelier de Soudure Merveille",
-    raison: "Contenu publicitaire",
-    date: "2026-06-20",
-    statut: "pending",
-  },
-  {
-    id: "sr-2",
-    signaleur: "Fatimata Sawadogo",
-    commentaireTexte: "Service horrible, ne vais jamais y retourner!!!",
-    commerce: "Plomberie Sanitaire Plus",
-    raison: "Langage injurieux",
-    date: "2026-06-22",
-    statut: "pending",
-  },
-  {
-    id: "sr-3",
-    signaleur: "Ibrahim Compaoré",
-    commentaireTexte: "Venez acheter nos produits, promo exceptionnelle!",
-    commerce: "Menuiserie Bois d'Or",
-    raison: "Spam / publicité",
-    date: "2026-06-24",
-    statut: "pending",
-  },
-  {
-    id: "sr-4",
-    signaleur: "Rasmata Zongo",
-    commentaireTexte: "Très bon travail, merci beaucoup!",
-    commerce: "Coiffure Élégance",
-    raison: "Faux avis",
-    date: "2026-06-18",
-    statut: "resolved",
-  },
-];
+import { adminService, type Signalement } from "@/services/admin.service";
 
 export default function AdminSignalementsPage() {
-  const [items, setItems] = useState(MOCK_SIGNALEMENTS);
+  const [items, setItems] = useState<Signalement[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const resolve = (id: string) => {
-    setItems((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, statut: "resolved" as const } : s))
-    );
+  useEffect(() => {
+    adminService.getSignalements()
+      .then(setItems)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const resolve = async (id: string) => {
+    try {
+      await adminService.resolveSignalement(id);
+      setItems((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, statut: "resolved" as const } : s))
+      );
+    } catch (err) {
+      console.error("Erreur résolution signalement:", err);
+    }
   };
 
-  const dismiss = (id: string) => {
-    setItems((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, statut: "dismissed" as const } : s))
-    );
+  const dismiss = async (id: string) => {
+    try {
+      await adminService.dismissSignalement(id);
+      setItems((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, statut: "dismissed" as const } : s))
+      );
+    } catch (err) {
+      console.error("Erreur rejet signalement:", err);
+    }
   };
 
-  const remove = (id: string) => {
-    setItems((prev) => prev.filter((s) => s.id !== id));
+  const remove = async (id: string) => {
+    if (!confirm("Supprimer ce signalement ?")) return;
+    try {
+      await adminService.deleteSignalement(id);
+      setItems((prev) => prev.filter((s) => s.id !== id));
+    } catch (err) {
+      console.error("Erreur suppression signalement:", err);
+    }
   };
 
   const statutBadge = (statut: string) => {
@@ -87,6 +63,17 @@ export default function AdminSignalementsPage() {
   };
 
   const pendingCount = items.filter((s) => s.statut === "pending").length;
+
+  if (loading) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold text-stone-900 tracking-tight">Gestion des signalements</h1>
+          <p className="text-stone-500 text-sm mt-2">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -110,11 +97,13 @@ export default function AdminSignalementsPage() {
                 <p className="text-sm text-stone-500 mb-1.5">
                   Commerce: <span className="font-medium text-stone-900">{s.commerce}</span>
                 </p>
-                <p className="text-sm italic text-stone-600 mb-1.5 leading-relaxed">
-                  &ldquo;{s.commentaireTexte}&rdquo;
-                </p>
+                {s.commentaireTexte && (
+                  <p className="text-sm italic text-stone-600 mb-1.5 leading-relaxed">
+                    &ldquo;{s.commentaireTexte}&rdquo;
+                  </p>
+                )}
                 <p className="text-xs text-stone-400">
-                  Raison: {s.raison} &middot; {s.date}
+                  Raison: {s.raison} &middot; {new Date(s.date).toLocaleDateString("fr-FR")}
                 </p>
               </div>
               {s.statut === "pending" && (
