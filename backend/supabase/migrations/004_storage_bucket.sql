@@ -7,6 +7,7 @@ VALUES ('commerces', 'commerces', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- Lecture publique des objets du bucket
+DROP POLICY IF EXISTS "Images commerces lisibles publiquement" ON storage.objects;
 CREATE POLICY "Images commerces lisibles publiquement"
   ON storage.objects FOR SELECT
   USING (bucket_id = 'commerces');
@@ -14,6 +15,7 @@ CREATE POLICY "Images commerces lisibles publiquement"
 -- L'écriture passe par le service role (backend), qui contourne la RLS.
 -- Un utilisateur authentifié peut aussi téléverser dans son propre dossier
 -- (préfixe = son id), au cas où l'upload se ferait côté client.
+DROP POLICY IF EXISTS "Utilisateur téléverse dans son dossier" ON storage.objects;
 CREATE POLICY "Utilisateur téléverse dans son dossier"
   ON storage.objects FOR INSERT
   WITH CHECK (

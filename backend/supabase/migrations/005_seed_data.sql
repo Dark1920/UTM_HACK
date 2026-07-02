@@ -3,6 +3,29 @@
 -- Idempotent : catégories via ON CONFLICT ; commerces uniquement si table vide.
 
 -- ─────────────────────────────────────────────────────────────
+-- Réconciliation défensive : garantit les colonnes utilisées par le seed
+-- même si les tables préexistent avec un schéma plus ancien.
+-- (Redondant avec 001/002 mais permet d'exécuter 005 seul sans erreur.)
+-- ─────────────────────────────────────────────────────────────
+ALTER TABLE categories ADD COLUMN IF NOT EXISTS description      TEXT;
+ALTER TABLE categories ADD COLUMN IF NOT EXISTS icone            TEXT;
+ALTER TABLE categories ADD COLUMN IF NOT EXISTS couleur          TEXT;
+ALTER TABLE categories ADD COLUMN IF NOT EXISTS nombre_commerces INTEGER NOT NULL DEFAULT 0;
+-- Requis par le ON CONFLICT (slug) plus bas :
+CREATE UNIQUE INDEX IF NOT EXISTS uq_categories_slug ON categories(slug);
+ALTER TABLE commerces  ADD COLUMN IF NOT EXISTS categorie_id UUID REFERENCES categories(id) ON DELETE SET NULL;
+ALTER TABLE commerces  ADD COLUMN IF NOT EXISTS ville        TEXT;
+ALTER TABLE commerces  ADD COLUMN IF NOT EXISTS latitude     DECIMAL(10, 8);
+ALTER TABLE commerces  ADD COLUMN IF NOT EXISTS longitude    DECIMAL(11, 8);
+ALTER TABLE commerces  ADD COLUMN IF NOT EXISTS whatsapp     TEXT;
+ALTER TABLE commerces  ADD COLUMN IF NOT EXISTS email        TEXT;
+ALTER TABLE commerces  ADD COLUMN IF NOT EXISTS photos       TEXT[] NOT NULL DEFAULT '{}';
+ALTER TABLE commerces  ADD COLUMN IF NOT EXISTS note_moyenne DECIMAL(4, 2) NOT NULL DEFAULT 0;
+ALTER TABLE commerces  ADD COLUMN IF NOT EXISTS nombre_avis  INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE commerces  ADD COLUMN IF NOT EXISTS nombre_vues  INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE commerces  ADD COLUMN IF NOT EXISTS est_public   BOOLEAN NOT NULL DEFAULT true;
+
+-- ─────────────────────────────────────────────────────────────
 -- Catégories (slugs alignés sur frontend/src/constants/categories.ts)
 -- ─────────────────────────────────────────────────────────────
 INSERT INTO categories (nom, slug, description, icone, couleur, nombre_commerces) VALUES

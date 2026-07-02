@@ -15,6 +15,17 @@ CREATE TABLE IF NOT EXISTS avis (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Réconciliation : garantit TOUTES les colonnes si la table préexiste.
+ALTER TABLE avis ADD COLUMN IF NOT EXISTS commerce_id     UUID REFERENCES commerces(id) ON DELETE CASCADE;
+ALTER TABLE avis ADD COLUMN IF NOT EXISTS user_id         UUID REFERENCES utilisateurs(id) ON DELETE CASCADE;
+ALTER TABLE avis ADD COLUMN IF NOT EXISTS note            INTEGER;
+ALTER TABLE avis ADD COLUMN IF NOT EXISTS commentaire     TEXT;
+ALTER TABLE avis ADD COLUMN IF NOT EXISTS sentiment       TEXT DEFAULT 'neutre';
+ALTER TABLE avis ADD COLUMN IF NOT EXISTS score_sentiment DECIMAL(4, 3) NOT NULL DEFAULT 0;
+ALTER TABLE avis ADD COLUMN IF NOT EXISTS is_spam         BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE avis ADD COLUMN IF NOT EXISTS created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+ALTER TABLE avis ADD COLUMN IF NOT EXISTS updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+
 CREATE INDEX IF NOT EXISTS idx_avis_commerce ON avis(commerce_id);
 CREATE INDEX IF NOT EXISTS idx_avis_user ON avis(user_id);
 
@@ -28,16 +39,19 @@ CREATE TRIGGER update_avis_updated_at
 ALTER TABLE avis ENABLE ROW LEVEL SECURITY;
 
 -- Lecture publique des avis (non spam)
+DROP POLICY IF EXISTS "Avis publics en lecture" ON avis;
 CREATE POLICY "Avis publics en lecture"
   ON avis FOR SELECT
   USING (is_spam = false);
 
 -- Un utilisateur authentifié peut publier un avis en son nom
+DROP POLICY IF EXISTS "Utilisateurs authentifiés peuvent publier un avis" ON avis;
 CREATE POLICY "Utilisateurs authentifiés peuvent publier un avis"
   ON avis FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
 -- L'auteur peut supprimer son propre avis
+DROP POLICY IF EXISTS "Auteur peut supprimer son avis" ON avis;
 CREATE POLICY "Auteur peut supprimer son avis"
   ON avis FOR DELETE
   USING (auth.uid() = user_id);
