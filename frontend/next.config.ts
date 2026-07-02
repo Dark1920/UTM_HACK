@@ -23,6 +23,7 @@ const nextConfig: NextConfig = {
       { source: '/api/auth/:path*',      destination: `${backend}/api/auth/:path*` },
       { source: '/api/recherche',        destination: `${backend}/api/recherche` },
       { source: '/api/geocoding',        destination: `${backend}/api/geocoding` },
+      { source: '/api/upload',           destination: `${backend}/api/upload` },
     ];
   },
 };

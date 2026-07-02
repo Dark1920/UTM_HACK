@@ -91,6 +91,9 @@ export default function CommerceDetailPage({ params }: { params: Promise<{ id: s
       setCommerce(c);
       setLoading(false);
 
+      // Comptabilise une vue (best-effort, une fois par consultation).
+      commerceService.incrementView(id);
+
       // Avis + commerces similaires (non bloquants)
       commentaireService.getByCommerceId(id).then((r) => !annule && setReviews(r)).catch(() => {});
       if (c.categorieId) {
@@ -333,6 +336,7 @@ export default function CommerceDetailPage({ params }: { params: Promise<{ id: s
                 {commerce.telephone && (
                   <a
                     href={`tel:${commerce.telephone}`}
+                    onClick={() => commerceService.incrementCall(id)}
                     className="flex items-center justify-center gap-2 w-full h-11 bg-info-600 text-white font-medium rounded-md hover:bg-info-700 transition-colors"
                   >
                     <Phone className="h-4 w-4" />
@@ -344,6 +348,7 @@ export default function CommerceDetailPage({ params }: { params: Promise<{ id: s
                     href={`https://wa.me/${commerce.whatsapp.replace(/[^0-9]/g, '')}`}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => commerceService.incrementWhatsAppClick(id)}
                     className="flex items-center justify-center gap-2 w-full h-11 bg-success-600 text-white font-medium rounded-md hover:bg-success-700 transition-colors"
                   >
                     <MessageCircle className="h-4 w-4" />

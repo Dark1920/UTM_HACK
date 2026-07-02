@@ -49,6 +49,7 @@ export async function PUT(
       telephone: 'telephone',
       whatsapp: 'whatsapp',
       email: 'email',
+      photos: 'photos',
       estPublic: 'est_public',
     }
 

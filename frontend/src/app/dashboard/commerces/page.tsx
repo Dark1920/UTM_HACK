@@ -1,18 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useAuthStore } from '@/stores/auth.store';
-import { mockCommerces } from '@/lib/mock-data';
-import { Plus, Edit2, Trash2, Eye, Star, X, Store } from 'lucide-react';
+import { commerceService } from '@/services/commerce.service';
+import { uploadService } from '@/services/upload.service';
+import { useToast } from '@/components/ui/toast';
+import { Plus, Edit2, Trash2, Eye, Star, X, Store, Loader2, ImagePlus } from 'lucide-react';
 import type { Commerce } from '@/types/commerce';
 import { CATEGORIES } from '@/constants/categories';
 
+// Coordonnées par défaut (centre de Ouagadougou) tant qu'aucun géocodage n'est fait.
+const DEFAULT_COORDS = { latitude: 12.3714, longitude: -1.5197 };
+
 export default function CommercesPage() {
   const { user } = useAuthStore();
-  const [commerces, setCommerces] = useState<Commerce[]>(
-    mockCommerces.filter((c) => c.artisanId === user?.id)
-  );
+  const { toast } = useToast();
+  const [commerces, setCommerces] = useState<Commerce[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [editingCommerce, setEditingCommerce] = useState<Commerce | null>(null);
   const [formData, setFormData] = useState({
     nom: '',
@@ -21,7 +29,22 @@ export default function CommercesPage() {
     adresse: '',
     ville: '',
     telephone: '',
+    photos: [] as string[],
   });
+
+  useEffect(() => {
+    if (!user?.id) return;
+    let annule = false;
+    commerceService
+      .getAll({ artisanId: user.id })
+      .then((list) => !annule && setCommerces(list))
+      .catch(() => !annule && toast('error', 'Erreur de chargement de vos commerces.'))
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      .finally(() => !annule && setLoading(false));
+    return () => {
+      annule = true;
+    };
+  }, [user?.id, toast]);
 
   const handleOpenModal = (commerce?: Commerce) => {
     if (commerce) {
@@ -33,53 +56,76 @@ export default function CommercesPage() {
         adresse: commerce.adresse,
         ville: commerce.ville,
         telephone: commerce.telephone,
+        photos: commerce.photos ?? [],
       });
     } else {
       setEditingCommerce(null);
-      setFormData({ nom: '', description: '', categorieId: '', adresse: '', ville: '', telephone: '' });
+      setFormData({ nom: '', description: '', categorieId: '', adresse: '', ville: '', telephone: '', photos: [] });
     }
     setShowModal(true);
   };
 
-  const handleSave = () => {
-    if (editingCommerce) {
-      setCommerces((prev) =>
-        prev.map((c) =>
-          c.id === editingCommerce.id
-            ? { ...c, ...formData, dateModification: new Date().toISOString() }
-            : c
-        )
-      );
-    } else {
-      const newCommerce: Commerce = {
-        id: `com-${Date.now()}`,
-        ...formData,
-        artisanId: user?.id || '',
-        latitude: 12.3714,
-        longitude: -1.5197,
-        photos: [],
-        note: 0,
-        nombreAvis: 0,
-        nombreVues: 0,
-        nombreAppels: 0,
-        nombreClicsWhatsApp: 0,
-        estPublic: true,
-        dateCreation: new Date().toISOString(),
-        dateModification: new Date().toISOString(),
-      };
-      setCommerces((prev) => [...prev, newCommerce]);
+  const handleUploadPhotos = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    try {
+      const results = await uploadService.uploadMultiple(Array.from(files));
+      setFormData((p) => ({ ...p, photos: [...p.photos, ...results.map((r) => r.url)] }));
+    } catch (err) {
+      toast('error', err instanceof Error ? err.message : 'Échec du téléversement.');
+    } finally {
+      setUploading(false);
     }
-    setShowModal(false);
   };
 
-  const handleDelete = (id: string) => {
-    setCommerces((prev) => prev.filter((c) => c.id !== id));
+  const removePhoto = (url: string) => {
+    setFormData((p) => ({ ...p, photos: p.photos.filter((u) => u !== url) }));
   };
 
-  const togglePublic = (id: string) => {
-    setCommerces((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, estPublic: !c.estPublic } : c))
-    );
+  const handleSave = async () => {
+    if (!user?.id) {
+      toast('error', 'Vous devez être connecté.');
+      return;
+    }
+    setSaving(true);
+    try {
+      if (editingCommerce) {
+        const updated = await commerceService.update(editingCommerce.id, formData);
+        setCommerces((prev) => prev.map((c) => (c.id === editingCommerce.id ? updated : c)));
+        toast('success', 'Commerce mis à jour.');
+      } else {
+        const created = await commerceService.create({ ...formData, ...DEFAULT_COORDS }, user.id);
+        setCommerces((prev) => [created, ...prev]);
+        toast('success', 'Commerce créé.');
+      }
+      setShowModal(false);
+    } catch (err) {
+      toast('error', err instanceof Error ? err.message : 'Erreur lors de l\'enregistrement.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    const prev = commerces;
+    setCommerces((list) => list.filter((c) => c.id !== id)); // optimiste
+    try {
+      await commerceService.delete(id);
+    } catch (err) {
+      setCommerces(prev); // rollback
+      toast('error', err instanceof Error ? err.message : 'Erreur de suppression.');
+    }
+  };
+
+  const togglePublic = async (commerce: Commerce) => {
+    const next = !commerce.estPublic;
+    setCommerces((prev) => prev.map((c) => (c.id === commerce.id ? { ...c, estPublic: next } : c)));
+    try {
+      await commerceService.update(commerce.id, { estPublic: next });
+    } catch {
+      setCommerces((prev) => prev.map((c) => (c.id === commerce.id ? { ...c, estPublic: !next } : c)));
+      toast('error', 'Impossible de modifier le statut.');
+    }
   };
 
   return (
@@ -87,7 +133,10 @@ export default function CommercesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-stone-900 tracking-tight">Mes commerces</h1>
-          <p className="text-stone-500 text-sm mt-1">{commerces.length} commerce(s)</p>
+          <p className="text-stone-500 text-sm mt-1 flex items-center gap-1.5">
+            {loading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+            {commerces.length} commerce(s)
+          </p>
         </div>
         <button
           onClick={() => handleOpenModal()}
@@ -141,7 +190,7 @@ export default function CommercesPage() {
                       </td>
                       <td className="px-5 py-3.5">
                         <button
-                          onClick={() => togglePublic(commerce.id)}
+                          onClick={() => togglePublic(commerce)}
                           className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
                             commerce.estPublic ? 'bg-success-600' : 'bg-stone-300'
                           }`}
@@ -271,6 +320,36 @@ export default function CommercesPage() {
                   />
                 </div>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-stone-800 mb-1.5">Photos</label>
+                <div className="flex flex-wrap gap-2">
+                  {formData.photos.map((url) => (
+                    <div key={url} className="relative h-16 w-16 rounded-md overflow-hidden border border-stone-200 group">
+                      <Image src={url} alt="" fill sizes="64px" className="object-cover" unoptimized />
+                      <button
+                        type="button"
+                        onClick={() => removePhoto(url)}
+                        aria-label="Retirer la photo"
+                        className="absolute top-0.5 right-0.5 bg-stone-900/70 text-white rounded p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                  <label className="h-16 w-16 flex items-center justify-center rounded-md border border-dashed border-stone-300 cursor-pointer hover:border-stone-500 transition-colors text-stone-400">
+                    {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      disabled={uploading}
+                      onChange={(e) => handleUploadPhotos(e.target.files)}
+                    />
+                  </label>
+                </div>
+              </div>
             </div>
             <div className="flex items-center justify-end gap-2.5 border-t border-stone-200 px-5 py-4">
               <button
@@ -281,8 +360,10 @@ export default function CommercesPage() {
               </button>
               <button
                 onClick={handleSave}
-                className="h-9 px-4 text-sm font-medium text-white bg-stone-900 hover:bg-stone-800 rounded-md transition-colors"
+                disabled={saving || !formData.nom || !formData.categorieId || !formData.adresse || !formData.ville}
+                className="h-9 px-4 inline-flex items-center gap-2 text-sm font-medium text-white bg-stone-900 hover:bg-stone-800 rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
+                {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                 {editingCommerce ? 'Enregistrer' : 'Créer'}
               </button>
             </div>

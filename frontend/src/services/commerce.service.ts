@@ -85,7 +85,10 @@ export const commerceService = {
     return mapCommerce(row);
   },
 
-  async update(id: string, data: Partial<CreateCommerceData>): Promise<Commerce> {
+  async update(
+    id: string,
+    data: Partial<CreateCommerceData & { estPublic: boolean }>
+  ): Promise<Commerce> {
     const row = await apiFetch<Record<string, unknown>>(`${API}/${id}`, {
       method: 'PUT',
       auth: true,
@@ -98,15 +101,24 @@ export const commerceService = {
     await apiFetch<void>(`${API}/${id}`, { method: 'DELETE', auth: true });
   },
 
-  async incrementView(id: string): Promise<void> {
-    // TODO: backend route for stats
+  async incrementStat(id: string, type: 'vue' | 'appel' | 'whatsapp'): Promise<void> {
+    // Tracking best-effort : une erreur ne doit jamais casser l'UI.
+    try {
+      await apiFetch<void>(`${API}/${id}/stats`, { method: 'POST', body: { type } });
+    } catch {
+      /* silencieux */
+    }
   },
 
-  async incrementCall(id: string): Promise<void> {
-    // TODO: backend route for stats
+  incrementView(id: string): Promise<void> {
+    return this.incrementStat(id, 'vue');
   },
 
-  async incrementWhatsAppClick(id: string): Promise<void> {
-    // TODO: backend route for stats
+  incrementCall(id: string): Promise<void> {
+    return this.incrementStat(id, 'appel');
+  },
+
+  incrementWhatsAppClick(id: string): Promise<void> {
+    return this.incrementStat(id, 'whatsapp');
   },
 };

@@ -53,7 +53,7 @@ export async function POST(request: Request) {
 
     const supabase = createServiceClient()
     const body = await request.json()
-    const { nom, description, categorieId, adresse, ville, latitude, longitude, telephone, whatsapp, email } = body
+    const { nom, description, categorieId, adresse, ville, latitude, longitude, telephone, whatsapp, email, photos } = body
 
     if (!nom || !categorieId || !adresse || !ville) {
       return Response.json({ error: 'Les champs nom, categorieId, adresse et ville sont requis' }, { status: 400 })
@@ -72,6 +72,7 @@ export async function POST(request: Request) {
         telephone,
         whatsapp,
         email,
+        photos: Array.isArray(photos) ? photos : [],
         artisan_id: user.id,
         est_public: true,
       })

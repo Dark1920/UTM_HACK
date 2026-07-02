@@ -44,4 +44,5 @@ export interface CreateCommerceData {
   telephone: string;
   whatsapp?: string;
   email?: string;
+  photos?: string[];
 }

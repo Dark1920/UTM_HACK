@@ -1,3 +1,5 @@
+import { apiFetch } from '@/lib/api-client';
+
 export interface UploadResult {
   url: string;
   filename: string;
@@ -7,26 +9,16 @@ export interface UploadResult {
 
 export const uploadService = {
   async uploadImage(file: File): Promise<UploadResult> {
-    await new Promise(r => setTimeout(r, 800));
-    return {
-      url: `https://placehold.co/600x400/333/FFF?text=${encodeURIComponent(file.name)}`,
-      filename: file.name,
-      size: file.size,
-      type: file.type,
-    };
+    const form = new FormData();
+    form.append('file', file);
+    return apiFetch<UploadResult>('/api/upload', {
+      method: 'POST',
+      auth: true,
+      body: form,
+    });
   },
 
   async uploadMultiple(files: File[]): Promise<UploadResult[]> {
-    await new Promise(r => setTimeout(r, 1200));
-    return files.map(file => ({
-      url: `https://placehold.co/600x400/333/FFF?text=${encodeURIComponent(file.name)}`,
-      filename: file.name,
-      size: file.size,
-      type: file.type,
-    }));
-  },
-
-  async deleteFile(url: string): Promise<void> {
-    await new Promise(r => setTimeout(r, 300));
+    return Promise.all(files.map((file) => this.uploadImage(file)));
   },
 };
