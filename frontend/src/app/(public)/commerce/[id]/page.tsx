@@ -17,10 +17,12 @@ import { useToast } from '@/components/ui/toast';
 import type { Commerce } from '@/types/commerce';
 import type { Commentaire } from '@/types/commentaire';
 
-function PhotoGallery({ photos: fallbackPhotos, name, categorieId }: { photos: string[]; name: string; categorieId: string }) {
+function PhotoGallery({ photos: fallbackPhotos, name, categorieSlug }: { photos: string[]; name: string; categorieSlug?: string }) {
   const [selected, setSelected] = useState(0);
-  const { photos: pexelsPhotos } = usePexelsPhotos(CATEGORY_PEXELS_QUERY[categorieId] ?? null, 4);
-  const photos = pexelsPhotos.length > 0 ? pexelsPhotos : fallbackPhotos;
+  const query = categorieSlug ? CATEGORY_PEXELS_QUERY[categorieSlug] ?? null : null;
+  const { photos: pexelsPhotos } = usePexelsPhotos(query, 4);
+  // Photos propres du commerce en priorité ; sinon Pexels (catégorie).
+  const photos = fallbackPhotos.length > 0 ? fallbackPhotos : pexelsPhotos;
 
   if (photos.length === 0) {
     return <div className="h-64 sm:h-80 lg:h-96 bg-stone-100 rounded-lg" />;
@@ -184,7 +186,7 @@ export default function CommerceDetailPage({ params }: { params: Promise<{ id: s
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main content */}
           <div className="lg:col-span-2 space-y-5">
-            <PhotoGallery photos={commerce.photos} name={commerce.nom} categorieId={commerce.categorieId} />
+            <PhotoGallery photos={commerce.photos} name={commerce.nom} categorieSlug={commerce.categorie?.slug} />
 
             <div className="rounded-lg border border-stone-200 p-6">
               <div className="flex items-start justify-between mb-4 gap-3">
@@ -383,7 +385,7 @@ export default function CommerceDetailPage({ params }: { params: Promise<{ id: s
                   {related.map((r) => (
                     <Link key={r.id} href={ROUTES.COMMERCE(r.id)} className="flex items-center gap-3 group">
                       <CommercePhoto
-                        categorieId={r.categorieId}
+                        categorieSlug={r.categorie?.slug}
                         fallbackSrc={r.photos[0]}
                         alt={r.nom}
                         className="w-12 h-12 rounded-md object-cover shrink-0"

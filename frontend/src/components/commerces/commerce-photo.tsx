@@ -5,7 +5,7 @@ import { usePexelsPhotos } from '@/hooks/usePexelsPhotos';
 import { CATEGORY_PEXELS_QUERY } from '@/constants/pexels';
 
 interface CommercePhotoProps {
-  categorieId: string;
+  categorieSlug?: string;
   fallbackSrc: string;
   alt: string;
   index?: number;
@@ -14,9 +14,10 @@ interface CommercePhotoProps {
 }
 
 /**
- * Affiche une photo Pexels pertinente pour la catégorie du commerce.
- * Retombe sur `fallbackSrc` (photo mock) tant que la clé Pexels n'est
- * pas configurée, pendant le chargement, ou en cas d'échec.
+ * Affiche la photo d'un commerce.
+ * Priorité : la **photo propre** du commerce (`fallbackSrc`, ex. image
+ * téléversée) si elle existe ; sinon une photo **Pexels** pertinente pour la
+ * catégorie (via son slug). En dernier recours, un aplat gris.
  *
  * Rendu via `next/image` en mode `fill` : le `className` reçu (taille +
  * arrondis) est porté par le conteneur relatif, ce qui couvre aussi bien
@@ -25,16 +26,17 @@ interface CommercePhotoProps {
  * on évite ainsi toute erreur de domaine non autorisé.
  */
 export function CommercePhoto({
-  categorieId,
+  categorieSlug,
   fallbackSrc,
   alt,
   index = 0,
   className,
   onError,
 }: CommercePhotoProps) {
-  const query = CATEGORY_PEXELS_QUERY[categorieId] ?? null;
+  const query = categorieSlug ? CATEGORY_PEXELS_QUERY[categorieSlug] ?? null : null;
   const { photos } = usePexelsPhotos(query, 4);
-  const src = photos.length > 0 ? photos[index % photos.length] : fallbackSrc;
+  const pexels = photos.length > 0 ? photos[index % photos.length] : undefined;
+  const src = fallbackSrc || pexels;
 
   if (!src) {
     return <span className={`block bg-stone-100 ${className ?? ''}`} aria-hidden="true" />;

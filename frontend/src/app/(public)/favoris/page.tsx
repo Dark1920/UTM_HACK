@@ -21,7 +21,7 @@ function FavoriteCard({
       <Link href={ROUTES.COMMERCE(commerce.id)}>
         <div className="relative h-40 bg-stone-100">
           <CommercePhoto
-            categorieId={commerce.categorieId}
+            categorieSlug={commerce.categorie?.slug}
             fallbackSrc={commerce.photos[0]}
             alt={commerce.nom}
             className="w-full h-full object-cover"

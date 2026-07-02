@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useAuthStore } from '@/stores/auth.store';
 import { commerceService } from '@/services/commerce.service';
+import { categorieService } from '@/services/categorie.service';
 import { uploadService } from '@/services/upload.service';
 import { useToast } from '@/components/ui/toast';
 import { Plus, Edit2, Trash2, Eye, Star, X, Store, Loader2, ImagePlus } from 'lucide-react';
-import type { Commerce } from '@/types/commerce';
-import { CATEGORIES } from '@/constants/categories';
+import type { Commerce, Categorie } from '@/types/commerce';
 
 // Coordonnées par défaut (centre de Ouagadougou) tant qu'aucun géocodage n'est fait.
 const DEFAULT_COORDS = { latitude: 12.3714, longitude: -1.5197 };
@@ -17,6 +17,7 @@ export default function CommercesPage() {
   const { user } = useAuthStore();
   const { toast } = useToast();
   const [commerces, setCommerces] = useState<Commerce[]>([]);
+  const [categories, setCategories] = useState<Categorie[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -45,6 +46,10 @@ export default function CommercesPage() {
       annule = true;
     };
   }, [user?.id, toast]);
+
+  useEffect(() => {
+    categorieService.getAll().then(setCategories).catch(() => setCategories([]));
+  }, []);
 
   const handleOpenModal = (commerce?: Commerce) => {
     if (commerce) {
@@ -178,7 +183,7 @@ export default function CommercesPage() {
               </thead>
               <tbody className="divide-y divide-stone-200">
                 {commerces.map((commerce) => {
-                  const categorie = CATEGORIES.find((c) => c.id === commerce.categorieId);
+                  const categorie = categories.find((c) => c.id === commerce.categorieId) ?? commerce.categorie;
                   return (
                     <tr key={commerce.id} className="hover:bg-stone-50">
                       <td className="px-5 py-3.5">
@@ -283,7 +288,7 @@ export default function CommercesPage() {
                   className="w-full h-10 px-3 border border-stone-300 rounded-md text-sm outline-none focus:ring-1 focus:ring-stone-900 focus:border-stone-900"
                 >
                   <option value="">Sélectionner une catégorie</option>
-                  {CATEGORIES.map((cat) => (
+                  {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>{cat.nom}</option>
                   ))}
                 </select>

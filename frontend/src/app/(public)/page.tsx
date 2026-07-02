@@ -264,7 +264,7 @@ export default function HomePage() {
               >
                 <div className="relative h-44 bg-stone-100 overflow-hidden">
                   <CommercePhoto
-                    categorieId={commerce.categorieId}
+                    categorieSlug={commerce.categorie?.slug}
                     fallbackSrc={commerce.photos[0]}
                     alt={commerce.nom}
                     className="w-full h-full object-cover"

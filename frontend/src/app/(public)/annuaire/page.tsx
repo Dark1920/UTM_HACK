@@ -25,7 +25,7 @@ function ResultCard({ commerce, categories }: { commerce: Commerce; categories: 
     >
       <div className="relative h-40 bg-stone-100 overflow-hidden">
         <CommercePhoto
-          categorieId={commerce.categorieId}
+          categorieSlug={commerce.categorie?.slug}
           fallbackSrc={commerce.photos[0]}
           alt={commerce.nom}
           className="w-full h-full object-cover"

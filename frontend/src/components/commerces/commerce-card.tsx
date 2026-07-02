@@ -32,7 +32,7 @@ export function CommerceCard({ commerce, distance }: CommerceCardProps) {
       <div className="relative aspect-[4/3] overflow-hidden rounded-t-lg bg-stone-100">
         {photoUrl ? (
           <CommercePhoto
-            categorieId={commerce.categorieId}
+            categorieSlug={commerce.categorie?.slug}
             fallbackSrc={photoUrl}
             alt={commerce.nom}
             className="h-full w-full object-cover"
