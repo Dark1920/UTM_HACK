@@ -71,7 +71,8 @@ Copier `backend/.env.example` vers `backend/.env`. Le backend utilise notamment 
 - `AI_MODEL` (ex: `llama-3.1-8b-instant`)
 - `AI_BASE_URL`
 - `AI_API_KEY`
-- `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (accès Supabase côté serveur)
+- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (accès Supabase)
+- `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` (rate limiting)
 
 > Ces variables doivent correspondre à celles utilisées par `backend/src/lib/ia/client`.
 
