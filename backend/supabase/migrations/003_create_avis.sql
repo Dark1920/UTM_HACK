@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS avis (
 CREATE INDEX IF NOT EXISTS idx_avis_commerce ON avis(commerce_id);
 CREATE INDEX IF NOT EXISTS idx_avis_user ON avis(user_id);
 
+DROP TRIGGER IF EXISTS update_avis_updated_at ON avis;
+
 CREATE TRIGGER update_avis_updated_at
   BEFORE UPDATE ON avis
   FOR EACH ROW

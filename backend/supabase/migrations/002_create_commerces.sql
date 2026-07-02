@@ -40,6 +40,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_commerces_updated_at ON commerces;
+
 CREATE TRIGGER update_commerces_updated_at
   BEFORE UPDATE ON commerces
   FOR EACH ROW
