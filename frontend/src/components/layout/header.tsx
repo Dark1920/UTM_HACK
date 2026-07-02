@@ -1,10 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, Menu, X, User, LogOut, ChevronDown, AlertTriangle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Heart, Menu, X, User, LogOut, ChevronDown, AlertTriangle, Mic, Loader2, Square } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
+import { categorieService } from '@/services/categorie.service';
+import { useToast } from '@/components/ui/toast';
+import { useVoiceSearch } from '@/hooks/useVoiceSearch';
+import { resolveCategoryId } from '@/utils/voice-search';
+import type { Categorie } from '@/types/commerce';
 
 const navLinks = [
   { href: ROUTES.HOME, label: 'Accueil' },
@@ -23,8 +29,53 @@ interface HeaderProps {
 }
 
 export default function Header({ user, onLogout }: HeaderProps) {
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [categories, setCategories] = useState<Categorie[]>([]);
+  const { toast } = useToast();
+  const { isRecording, isProcessing, error, result, startRecording, stopRecording, reset } = useVoiceSearch();
+
+  useEffect(() => {
+    categorieService.getAll().then(setCategories).catch(() => setCategories([]));
+  }, []);
+
+  useEffect(() => {
+    if (!result) return;
+
+    if (result.intention === 'commentaire') {
+      toast('warning', 'La voix a détecté un commentaire. Essayez une recherche d’artisan.');
+      reset();
+      return;
+    }
+
+    if (result.intention === 'incomprehensible') {
+      toast('error', 'Commande vocale non comprise. Réessayez en citant un métier ou un quartier.');
+      reset();
+      return;
+    }
+
+    const categoryId = resolveCategoryId(result.categorie, categories);
+    const params = new URLSearchParams();
+    if (result.texte) params.set('q', result.texte);
+    if (categoryId) params.set('categorie', categoryId);
+
+    const target = result.urgence ? ROUTES.URGENCE : ROUTES.ANNUAIRE;
+    router.push(`${target}${params.toString() ? `?${params.toString()}` : ''}`);
+    toast('success', result.urgence ? 'Urgence détectée, redirection effectuée.' : 'Recherche vocale prise en compte.');
+    reset();
+  }, [categories, reset, result, router, toast]);
+
+  const handleVoiceClick = async () => {
+    if (isProcessing) return;
+
+    if (isRecording) {
+      stopRecording();
+      return;
+    }
+
+    await startRecording();
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-stone-200">
@@ -48,7 +99,26 @@ export default function Header({ user, onLogout }: HeaderProps) {
             ))}
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={handleVoiceClick}
+              disabled={isProcessing}
+              className={`hidden sm:inline-flex items-center justify-center h-9 w-9 rounded-md border border-stone-200 transition-colors ${
+                isRecording ? 'bg-error-50 text-error-600 border-error-200' : 'text-stone-500 hover:text-stone-900 hover:bg-stone-50'
+              } disabled:opacity-50`}
+              aria-label={isRecording ? 'Arrêter la recherche vocale' : 'Lancer la recherche vocale'}
+              title="Recherche vocale"
+            >
+              {isProcessing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : isRecording ? (
+                <Square className="h-4 w-4 fill-current" />
+              ) : (
+                <Mic className="h-4 w-4" />
+              )}
+            </button>
+
             <Link
               href={ROUTES.FAVORIS}
               className="hidden sm:flex p-2 text-stone-400 hover:text-stone-900 transition-colors"
@@ -125,6 +195,7 @@ export default function Header({ user, onLogout }: HeaderProps) {
             </button>
           </div>
         </div>
+        {error && <p className="hidden sm:block text-xs text-error-600 text-right pb-2">{error}</p>}
       </div>
 
       {mobileMenuOpen && (

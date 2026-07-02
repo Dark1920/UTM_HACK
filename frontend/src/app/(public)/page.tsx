@@ -4,12 +4,15 @@ import { useState, useEffect, type FormEvent } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Search, ArrowRight, ArrowUpRight, Star, MapPin, Phone } from 'lucide-react';
+import { Search, ArrowRight, ArrowUpRight, Star, MapPin, Phone, Mic, Loader2, Square } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
 import { commerceService } from '@/services/commerce.service';
 import { categorieService } from '@/services/categorie.service';
+import { useVoiceSearch } from '@/hooks/useVoiceSearch';
+import { useToast } from '@/components/ui/toast';
 import { CommercePhoto } from '@/components/commerces/commerce-photo';
 import type { Commerce, Categorie } from '@/types/commerce';
+import { resolveCategoryId } from '@/utils/voice-search';
 
 const categoryIcons: Record<string, string> = {
   'cat-1': '🔧',
@@ -81,6 +84,8 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [commerces, setCommerces] = useState<Commerce[]>([]);
   const [categories, setCategories] = useState<Categorie[]>([]);
+  const { toast } = useToast();
+  const { isRecording, isProcessing, error, result, startRecording, stopRecording, reset } = useVoiceSearch();
 
   useEffect(() => {
     commerceService.getAll().then(setCommerces).catch(console.error);
@@ -88,6 +93,46 @@ export default function HomePage() {
   }, []);
 
   const featuredCommerces = commerces.slice(0, 6);
+
+  useEffect(() => {
+    if (!result) return;
+
+    if (result.intention === 'commentaire') {
+      toast('warning', 'La commande vocale a compris un commentaire. Essayez plutôt une recherche d’artisan.');
+      reset();
+      return;
+    }
+
+    if (result.intention === 'incomprehensible') {
+      toast('error', 'Commande vocale non comprise. Réessayez en citant un métier ou un quartier.');
+      reset();
+      return;
+    }
+
+    const categoryId = resolveCategoryId(result.categorie, categories);
+    const params = new URLSearchParams();
+    if (result.texte) params.set('q', result.texte);
+    if (categoryId) params.set('categorie', categoryId);
+
+    if (result.urgence) {
+      router.push(`${ROUTES.URGENCE}${params.toString() ? `?${params.toString()}` : ''}`);
+    } else {
+      router.push(`${ROUTES.ANNUAIRE}${params.toString() ? `?${params.toString()}` : ''}`);
+    }
+
+    toast('success', result.urgence ? 'Recherche urgente détectée.' : 'Recherche vocale prise en compte.');
+    reset();
+  }, [categories, reset, result, router, toast]);
+
+  const handleVoiceClick = async () => {
+    if (isProcessing) return;
+    if (isRecording) {
+      stopRecording();
+      return;
+    }
+
+    await startRecording();
+  };
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -136,12 +181,32 @@ export default function HomePage() {
                   />
                 </div>
                 <button
+                  type="button"
+                  onClick={handleVoiceClick}
+                  disabled={isProcessing}
+                  className={`h-12 px-4 border-y border-stone-300 bg-white text-sm transition-colors -ml-px ${
+                    isRecording ? 'text-error-600' : 'text-stone-500 hover:text-stone-900'
+                  } disabled:opacity-50`}
+                  aria-label={isRecording ? 'Arrêter la recherche vocale' : 'Lancer la recherche vocale'}
+                >
+                  {isProcessing ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : isRecording ? (
+                    <Square className="h-4 w-4 fill-current" />
+                  ) : (
+                    <Mic className="h-4 w-4" />
+                  )}
+                </button>
+                <button
                   type="submit"
                   className="h-12 px-5 text-sm font-medium text-white bg-stone-900 hover:bg-stone-800 rounded-r-md transition-colors -ml-px"
                 >
                   Rechercher
                 </button>
               </form>
+
+              {error && <p className="mt-2 text-sm text-error-400 max-w-md">{error}</p>}
+              {isRecording && <p className="mt-2 text-sm text-stone-300 max-w-md">Parlez maintenant: métier, quartier ou urgence.</p>}
 
               <div className="mt-4 flex flex-wrap items-center gap-x-1.5 gap-y-1.5 text-sm">
                 <span className="text-stone-400">Populaire :</span>

@@ -9,6 +9,7 @@ import { categorieService } from '@/services/categorie.service';
 import type { Categorie } from '@/types/commerce';
 import { CommercePhoto } from '@/components/commerces/commerce-photo';
 import MapLeaflet from '@/components/maps/map-leaflet';
+import { resolveCategoryId } from '@/utils/voice-search';
 
 interface GeolocationState {
   lat: number;
@@ -64,6 +65,17 @@ export default function UrgencePage() {
   useEffect(() => {
     categorieService.getAll().then(setCategories).catch(() => setCategories([]));
   }, []);
+
+  useEffect(() => {
+    if (categories.length === 0) return;
+
+    const categorieParam = new URLSearchParams(window.location.search).get('categorie');
+    const categoryId = resolveCategoryId(categorieParam, categories);
+
+    if (categoryId) {
+      setActiveCategory(categoryId);
+    }
+  }, [categories]);
 
   // Recherche géolocalisée serveur (backend /api/recherche) à chaque changement de position/catégorie
   useEffect(() => {
