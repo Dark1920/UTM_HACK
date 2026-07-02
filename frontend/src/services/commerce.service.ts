@@ -2,7 +2,7 @@ import type { Commerce, CreateCommerceData } from '@/types/commerce';
 
 const API = '/api/commerces';
 
-function mapCommerce(row: Record<string, unknown>): Commerce {
+export function mapCommerce(row: Record<string, unknown>): Commerce {
   const categories = row.categories as Record<string, unknown> | null;
   const artisans = row.utilisateurs as Record<string, unknown> | null;
   return {

@@ -20,3 +20,4 @@ frontend/CLAUDE.md
 !.env.example
 !.env.local.example
 .env.local
+CLAUDE.md

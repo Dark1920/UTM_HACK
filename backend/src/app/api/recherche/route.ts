@@ -13,7 +13,7 @@ export async function GET(request: Request) {
 
     let query = supabase
       .from('commerces')
-      .select('*, categories(*), utilisateurs(id, nom)')
+      .select('*, categories(*), utilisateurs(id, nom, prenom)')
       .eq('est_public', true)
 
     if (q) {

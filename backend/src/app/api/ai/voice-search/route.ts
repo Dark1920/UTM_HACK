@@ -26,6 +26,7 @@ export async function POST(req: Request) {
         intention: "incomprehensible",
         categorie: null,
         quartier: null,
+        urgence: false,
       })
     }
 

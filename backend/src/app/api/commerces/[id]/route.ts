@@ -9,7 +9,7 @@ export async function GET(
     const supabase = createServiceClient()
     const { data: commerce, error } = await supabase
       .from('commerces')
-      .select('*, categories(*), utilisateurs(id, nom)')
+      .select('*, categories(*), utilisateurs(id, nom, prenom)')
       .eq('id', params.id)
       .single()
 
@@ -36,11 +36,37 @@ export async function PUT(
     const supabase = createServiceClient()
     const body = await request.json()
 
+    // Le frontend envoie du camelCase (categorieId, ...) mais les colonnes
+    // Supabase sont en snake_case. On mappe explicitement les champs autorisés.
+    const fieldMap: Record<string, string> = {
+      nom: 'nom',
+      description: 'description',
+      categorieId: 'categorie_id',
+      adresse: 'adresse',
+      ville: 'ville',
+      latitude: 'latitude',
+      longitude: 'longitude',
+      telephone: 'telephone',
+      whatsapp: 'whatsapp',
+      email: 'email',
+      estPublic: 'est_public',
+    }
+
+    const updates: Record<string, unknown> = {}
+    for (const [key, value] of Object.entries(body)) {
+      const column = fieldMap[key]
+      if (column) updates[column] = value
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return Response.json({ error: 'Aucun champ modifiable fourni' }, { status: 400 })
+    }
+
     const { data: commerce, error } = await supabase
       .from('commerces')
-      .update(body)
+      .update(updates)
       .eq('id', params.id)
-      .select('*, categories(*), utilisateurs(id, nom)')
+      .select('*, categories(*), utilisateurs(id, nom, prenom)')
       .single()
 
     if (error) {

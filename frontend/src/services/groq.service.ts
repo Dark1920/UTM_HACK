@@ -1,5 +1,5 @@
 export const groqService = {
-  async analyseSentiment(texte: string): Promise<{ note: number; sentiment: string; pertient: boolean; criteres: { qualite: number; professionnalisme: number; rapidite: number; prix: number }; points_forts: string[]; points_faibles: string[] }> {
+  async analyseSentiment(texte: string): Promise<{ pertinent: boolean; note: number; sentiment: 'positif' | 'neutre' | 'negatif'; criteres: { qualite: number; professionnalisme: number; rapidite: number; prix: number }; points_forts: string[]; points_faibles: string[]; raison: string }> {
     const res = await fetch('/api/ai/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

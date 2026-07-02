@@ -16,7 +16,7 @@ export async function GET(request: Request) {
 
     let query = supabase
       .from('commerces')
-      .select('*, categories(*), utilisateurs(id, nom)', { count: 'exact' })
+      .select('*, categories(*), utilisateurs(id, nom, prenom)', { count: 'exact' })
       .eq('est_public', true)
       .range(from, to)
       .order('created_at', { ascending: false })
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
         artisan_id: user.id,
         est_public: true,
       })
-      .select('*, categories(*), utilisateurs(id, nom)')
+      .select('*, categories(*), utilisateurs(id, nom, prenom)')
       .single()
 
     if (error) {

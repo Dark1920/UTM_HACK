@@ -3,7 +3,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertTriangle, Phone, MessageCircle, Locate, Loader2 } from 'lucide-react';
-import { mockCommerces, mockCategories } from '@/lib/mock-data';
+import { rechercheService, geolocationService } from '@/services';
+import type { CommerceProche } from '@/services/recherche.service';
+import { categorieService } from '@/services/categorie.service';
+import type { Categorie } from '@/types/commerce';
 import MapLeaflet from '@/components/maps/map-leaflet';
 
 interface GeolocationState {
@@ -13,18 +16,8 @@ interface GeolocationState {
   error: string | null;
 }
 
-function getDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
+// Rayon large : on veut tous les commerces triés par distance (comportement "urgence").
+const RAYON_METRES = 1_000_000;
 
 export default function UrgencePage() {
   const router = useRouter();
@@ -36,6 +29,10 @@ export default function UrgencePage() {
   });
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [userLocated, setUserLocated] = useState(false);
+  const [categories, setCategories] = useState<Categorie[]>([]);
+  const [nearbyCommerces, setNearbyCommerces] = useState<CommerceProche[]>([]);
+  const [loadingResults, setLoadingResults] = useState(false);
+  const [adresse, setAdresse] = useState<string | null>(null);
 
   const requestLocation = useCallback(() => {
     if (!navigator.geolocation) {
@@ -60,16 +57,48 @@ export default function UrgencePage() {
     requestLocation();
   }, [requestLocation]);
 
-  const nearbyCommerces = userLocated
-    ? mockCommerces
-        .filter((c) => c.estPublic)
-        .map((c) => ({
-          ...c,
-          distance: getDistance(geo.lat, geo.lng, c.latitude, c.longitude),
-        }))
-        .filter((c) => (activeCategory ? c.categorieId === activeCategory : true))
-        .sort((a, b) => a.distance - b.distance)
-    : [];
+  // Catégories réelles (backend /api/categories)
+  useEffect(() => {
+    categorieService.getAll().then(setCategories).catch(() => setCategories([]));
+  }, []);
+
+  // Recherche géolocalisée serveur (backend /api/recherche) à chaque changement de position/catégorie
+  useEffect(() => {
+    if (!userLocated) return;
+    let annule = false;
+    setLoadingResults(true);
+    rechercheService
+      .rechercher({
+        categorieId: activeCategory ?? undefined,
+        latitude: geo.lat,
+        longitude: geo.lng,
+        rayon: RAYON_METRES,
+      })
+      .then((res) => {
+        if (!annule) setNearbyCommerces(res);
+      })
+      .catch(() => {
+        if (!annule) setNearbyCommerces([]);
+      })
+      .finally(() => {
+        if (!annule) setLoadingResults(false);
+      });
+    return () => {
+      annule = true;
+    };
+  }, [userLocated, activeCategory, geo.lat, geo.lng]);
+
+  // Adresse détectée (géocodage inverse backend /api/geocoding)
+  useEffect(() => {
+    if (!userLocated) return;
+    let annule = false;
+    geolocationService.reverseGeocode(geo.lat, geo.lng).then((r) => {
+      if (!annule && r) setAdresse(r.displayName);
+    });
+    return () => {
+      annule = true;
+    };
+  }, [userLocated, geo.lat, geo.lng]);
 
   return (
     <div className="min-h-screen">
@@ -91,6 +120,12 @@ export default function UrgencePage() {
           <p className="text-stone-500 mt-2 max-w-xl">
             Nous trions automatiquement les artisans disponibles par distance, en fonction de votre position.
           </p>
+
+          {adresse && (
+            <p className="text-stone-600 text-sm mt-3">
+              📍 Votre position&nbsp;: <span className="font-medium">{adresse}</span>
+            </p>
+          )}
 
           {!userLocated && (
             <button
@@ -120,7 +155,7 @@ export default function UrgencePage() {
             >
               Tous
             </button>
-            {mockCategories.map((cat) => (
+            {categories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
@@ -155,8 +190,9 @@ export default function UrgencePage() {
 
           {/* Nearby artisans list */}
           <div>
-            <h2 className="font-semibold text-stone-900 mb-4 text-base">
+            <h2 className="font-semibold text-stone-900 mb-4 text-base flex items-center gap-2">
               Artisans à proximité ({nearbyCommerces.length})
+              {loadingResults && <Loader2 className="h-4 w-4 animate-spin text-stone-400" />}
             </h2>
             {nearbyCommerces.length === 0 ? (
               <div className="text-center py-14 border border-dashed border-stone-300 rounded-lg">
@@ -166,7 +202,7 @@ export default function UrgencePage() {
             ) : (
               <div className="space-y-2.5">
                 {nearbyCommerces.map((commerce) => {
-                  const category = mockCategories.find((c) => c.id === commerce.categorieId);
+                  const category = categories.find((c) => c.id === commerce.categorieId);
                   return (
                     <div
                       key={commerce.id}
@@ -174,16 +210,18 @@ export default function UrgencePage() {
                     >
                       <div className="flex items-start gap-3.5">
                         <img
-                          src={commerce.photos[0]}
+                          src={commerce.photos[0] || 'https://placehold.co/56x56/e7e5e4/78716c?text=%20'}
                           alt={commerce.nom}
                           className="w-14 h-14 rounded-md object-cover shrink-0"
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className="font-medium text-stone-900 truncate">{commerce.nom}</h3>
-                            <span className="shrink-0 text-xs font-semibold text-error-700 bg-error-50 px-2 py-0.5 rounded-md">
-                              {commerce.distance.toFixed(1)} km
-                            </span>
+                            {commerce.distance != null && (
+                              <span className="shrink-0 text-xs font-semibold text-error-700 bg-error-50 px-2 py-0.5 rounded-md">
+                                {commerce.distance.toFixed(1)} km
+                              </span>
+                            )}
                           </div>
                           <p className="text-sm text-stone-500">{category?.nom}</p>
                           <p className="text-xs text-stone-400 mb-2.5 truncate">{commerce.adresse}</p>
