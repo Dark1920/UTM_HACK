@@ -214,7 +214,11 @@ export default function AnnuairePage() {
                 markers={filtered.map((c) => ({
                   id: c.id,
                   position: [c.latitude, c.longitude],
-                  popup: c.nom,
+                  nom: c.nom,
+                  categorie: categories.find((cat) => cat.id === c.categorieId)?.nom ?? c.categorie?.nom,
+                  note: c.note,
+                  adresse: c.adresse,
+                  color: '#d97706',
                 }))}
                 onMarkerClick={(id) => router.push(ROUTES.COMMERCE(id))}
               />

@@ -250,7 +250,17 @@ export default function CommerceDetailPage({ params }: { params: Promise<{ id: s
                   className="h-64 w-full"
                   center={[commerce.latitude, commerce.longitude]}
                   zoom={15}
-                  markers={[{ id: commerce.id, position: [commerce.latitude, commerce.longitude], popup: commerce.nom }]}
+                  markers={[
+                    {
+                      id: commerce.id,
+                      position: [commerce.latitude, commerce.longitude],
+                      nom: commerce.nom,
+                      categorie: categoryNom,
+                      note: commerce.note,
+                      adresse: commerce.adresse,
+                      color: '#1d4ed8',
+                    },
+                  ]}
                 />
               </div>
             )}

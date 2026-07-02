@@ -188,7 +188,12 @@ export default function UrgencePage() {
             markers={nearbyCommerces.map((c) => ({
               id: c.id,
               position: [c.latitude, c.longitude],
-              popup: c.nom,
+              nom: c.nom,
+              categorie: categories.find((cat) => cat.id === c.categorieId)?.nom ?? c.categorie?.nom,
+              note: c.note,
+              adresse: c.adresse,
+              distanceKm: c.distance ?? undefined,
+              color: '#dc2626',
             }))}
             onMarkerClick={(id) => router.push(`/commerce/${id}`)}
           />

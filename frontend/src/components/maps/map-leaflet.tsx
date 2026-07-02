@@ -1,12 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-
-interface MapMarker {
-  id: string;
-  position: [number, number];
-  popup?: string;
-}
+import type { MapMarker } from "./map-types";
 
 interface MapLeafletProps {
   markers?: MapMarker[];
