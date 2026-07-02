@@ -1,42 +1,88 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Star, Trash2, CheckCircle, AlertTriangle, MessageSquare } from "lucide-react";
-import { mockCommentaires, mockCommerces } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { adminService } from "@/services/admin.service";
+import type { Commentaire } from "@/types/commentaire";
 
 type Status = "all" | "approved" | "spam";
 
 export default function AdminCommentairesPage() {
   const [filter, setFilter] = useState<Status>("all");
-  const [items, setItems] = useState(mockCommentaires);
+  const [items, setItems] = useState<Commentaire[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = items.filter((c) => {
-    if (filter === "approved") return !c.estSpam;
-    if (filter === "spam") return c.estSpam;
-    return true;
-  });
+  const fetchAvis = async () => {
+    try {
+      const filtre = filter === "all" ? "tous" : filter === "approved" ? "approuves" : "spam";
+      const res = await adminService.getAvis({ filtre });
+      setItems(res.avis);
+    } catch (err) {
+      console.error("Erreur chargement avis:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const approve = (id: string) => {
-    setItems((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, estSpam: false } : c))
+  useEffect(() => {
+    setLoading(true);
+    fetchAvis();
+  }, [filter]);
+
+  const approve = async (id: string) => {
+    try {
+      await adminService.approveAvis(id);
+      setItems((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, estSpam: false } : c))
+      );
+    } catch (err) {
+      console.error("Erreur approbation avis:", err);
+    }
+  };
+
+  const markSpam = async (id: string) => {
+    try {
+      await adminService.markSpam(id);
+      setItems((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, estSpam: true } : c))
+      );
+    } catch (err) {
+      console.error("Erreur mark spam avis:", err);
+    }
+  };
+
+  const remove = async (id: string) => {
+    if (!confirm("Supprimer ce commentaire ?")) return;
+    try {
+      await adminService.deleteAvis(id);
+      setItems((prev) => prev.filter((c) => c.id !== id));
+    } catch (err) {
+      console.error("Erreur suppression avis:", err);
+    }
+  };
+
+  const getCommerceName = (c: Commentaire) => {
+    if (c.commerce?.nom) return c.commerce.nom;
+    return "Inconnu";
+  };
+
+  const getAuteurName = (c: Commentaire) => {
+    if (c.auteur?.prenom && c.auteur?.nom) return `${c.auteur.prenom} ${c.auteur.nom}`;
+    return c.auteurId;
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold text-stone-900 tracking-tight">Gestion des commentaires</h1>
+          <p className="text-stone-500 text-sm mt-2">Chargement...</p>
+        </div>
+      </div>
     );
-  };
-
-  const markSpam = (id: string) => {
-    setItems((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, estSpam: true } : c))
-    );
-  };
-
-  const remove = (id: string) => {
-    setItems((prev) => prev.filter((c) => c.id !== id));
-  };
-
-  const getCommerceName = (commerceId: string) => {
-    return mockCommerces.find((c) => c.id === commerceId)?.nom || "Inconnu";
-  };
+  }
 
   return (
     <div className="space-y-8">
@@ -59,7 +105,7 @@ export default function AdminCommentairesPage() {
       </div>
 
       <div className="space-y-3">
-        {filtered.map((c) => (
+        {items.map((c) => (
           <div
             key={c.id}
             className="rounded-lg border border-stone-200 bg-white p-5 space-y-2 shadow-sm hover:shadow-md transition-all duration-300"
@@ -67,9 +113,9 @@ export default function AdminCommentairesPage() {
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="font-semibold text-stone-900">{c.auteurId}</span>
+                  <span className="font-semibold text-stone-900">{getAuteurName(c)}</span>
                   <span className="text-stone-500 text-sm">
-                    sur {getCommerceName(c.commerceId)}
+                    sur {getCommerceName(c)}
                   </span>
                   {c.estSpam && (
                     <Badge variant="error">
@@ -117,7 +163,7 @@ export default function AdminCommentairesPage() {
         ))}
       </div>
 
-      {filtered.length === 0 && (
+      {items.length === 0 && (
         <div className="text-center py-16">
           <div className="h-20 w-20 rounded-lg bg-stone-100 flex items-center justify-center mx-auto mb-4">
             <MessageSquare className="h-10 w-10 text-stone-300" />

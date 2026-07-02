@@ -1,36 +1,75 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { mockArtisans, mockCitoyens } from '@/lib/mock-data';
 import { Search, Trash2, UserCheck, UserX } from 'lucide-react';
 import type { Utilisateur } from '@/types/utilisateur';
-
-const allUsers: Utilisateur[] = [...mockArtisans, ...mockCitoyens];
+import { adminService } from '@/services/admin.service';
 
 export default function UtilisateursPage() {
-  const [users, setUsers] = useState(allUsers);
+  const [users, setUsers] = useState<Utilisateur[]>([]);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
+  const [loading, setLoading] = useState(true);
+
+  const fetchUsers = async () => {
+    try {
+      const res = await adminService.getUsers({ search: search || undefined, role: roleFilter !== 'all' ? roleFilter : undefined });
+      setUsers(res.users);
+    } catch (err) {
+      console.error('Erreur chargement utilisateurs:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, [roleFilter]);
 
   const filteredUsers = users.filter((u) => {
+    if (roleFilter !== 'all') return true; // already filtered server-side
     const matchesSearch =
       u.nom.toLowerCase().includes(search.toLowerCase()) ||
       u.prenom.toLowerCase().includes(search.toLowerCase()) ||
       u.email.toLowerCase().includes(search.toLowerCase());
-    const matchesRole = roleFilter === 'all' || u.role === roleFilter;
-    return matchesSearch && matchesRole;
+    return matchesSearch;
   });
 
-  const toggleActive = (id: string) => {
-    setUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, estActif: !u.estActif } : u))
-    );
+  const toggleActive = async (id: string) => {
+    const user = users.find((u) => u.id === id);
+    if (!user) return;
+    const action = user.estActif ? 'desactiver' : 'activer';
+    try {
+      await adminService.updateUser(id, { action });
+      setUsers((prev) =>
+        prev.map((u) => (u.id === id ? { ...u, estActif: !u.estActif } : u))
+      );
+    } catch (err) {
+      console.error('Erreur toggle utilisateur:', err);
+    }
   };
 
-  const deleteUser = (id: string) => {
-    setUsers((prev) => prev.filter((u) => u.id !== id));
+  const deleteUser = async (id: string) => {
+    if (!confirm('Supprimer cet utilisateur ?')) return;
+    try {
+      await adminService.deleteUser(id);
+      setUsers((prev) => prev.filter((u) => u.id !== id));
+    } catch (err) {
+      console.error('Erreur suppression utilisateur:', err);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold text-stone-900 tracking-tight">Utilisateurs</h1>
+          <p className="text-stone-500 text-sm mt-2">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -47,6 +86,7 @@ export default function UtilisateursPage() {
             placeholder="Rechercher un utilisateur..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && fetchUsers()}
             className="w-full pl-11 pr-4 py-3 border border-stone-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-400/30 focus:border-primary-400 outline-none transition-all duration-200 hover:border-stone-300"
           />
         </div>
