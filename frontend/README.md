@@ -63,6 +63,7 @@ cp .env.local.example .env.local
 | `AI_MODEL` | Modele LLM | `llama-3.1-8b-instant` |
 | `PEXELS_API_KEY` | Cle API Pexels (photos) | `xxxx` |
 | `NEXT_PUBLIC_BACKEND_URL` | URL du backend | `http://localhost:3001` |
+| `BACKEND_URL` | Alias backend compatible | `http://localhost:3001` |
 
 ## Structure
 

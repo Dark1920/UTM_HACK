@@ -17,7 +17,7 @@ ArtisanBF connecte les artisans à leurs clients via un annuaire géolocalisé, 
 
 > ⚠️ Le backend est à la racine `backend/` (le nom **de package** est `artisanbf`). Il n'existe **pas** de dossier `backend/artisanbf/`.
 
-Le frontend communique avec le backend via des **rewrites Next.js** (proxy) configurés dans `frontend/next.config.ts` (env `BACKEND_URL`). Sont proxyfiés : `/api/ai/*`, `/api/commerces`, `/api/categories`, `/api/avis/*`, `/api/auth/*`, `/api/recherche`, `/api/geocoding`. Seul `/api/photos` (Pexels) est servi localement par le frontend.
+Le frontend communique avec le backend via des **rewrites Next.js** (proxy) configurés dans `frontend/next.config.ts` (env `NEXT_PUBLIC_BACKEND_URL`, avec compatibilité `BACKEND_URL`). Sont proxyfiés : `/api/ai/*`, `/api/commerces`, `/api/categories`, `/api/avis/*`, `/api/auth/*`, `/api/recherche`, `/api/geocoding`. Seul `/api/photos` (Pexels) est servi localement par le frontend.
 
 ## Base de données (Supabase)
 
@@ -54,14 +54,15 @@ Scripts disponibles (root) :
 ### Frontend (frontend/.env.local)
 Copier `frontend/.env.local.example` vers `frontend/.env.local`, puis renseigner :
 
-> Note : les appels IA (`/api/ai/*`) sont routés vers le backend via `frontend/next.config.ts` (env `BACKEND_URL`).
-> Vérifier que `BACKEND_URL` pointe bien vers le backend (ex: `http://localhost:3001`).
+> Note : les appels IA (`/api/ai/*`) sont routés vers le backend via `frontend/next.config.ts` (env `NEXT_PUBLIC_BACKEND_URL`, avec compatibilité `BACKEND_URL`).
+> Vérifier que `NEXT_PUBLIC_BACKEND_URL` pointe bien vers le backend (ex : `http://localhost:3001`).
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
-- `NEXT_PUBLIC_BACKEND_URL` (ex: `http://localhost:3001`)
+- `NEXT_PUBLIC_BACKEND_URL` (ex : `http://localhost:3001`)
+- `BACKEND_URL` (alias compatible, facultatif)
 - `AI_API_KEY`, `AI_BASE_URL`, `AI_MODEL` (utilisés par le proxy)
 - `PEXELS_API_KEY` (photos)
 

@@ -1,6 +1,23 @@
 import type { NextConfig } from "next";
 import path from "path";
 
+function resolveBackendUrl(): string | null {
+  const backend = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+
+  try {
+    const backendUrl = new URL(backend);
+    const frontendHost = process.env.VERCEL_URL ? new URL(`https://${process.env.VERCEL_URL}`) : null;
+
+    if (frontendHost && backendUrl.host === frontendHost.host) {
+      return null;
+    }
+
+    return backendUrl.toString().replace(/\/$/, '');
+  } catch {
+    return backend;
+  }
+}
+
 const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname, '..'),
@@ -12,7 +29,12 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
-    const backend = process.env.BACKEND_URL || 'http://localhost:3001';
+    const backend = resolveBackendUrl();
+
+    if (!backend) {
+      return [];
+    }
+
     return [
       { source: '/api/ai/:path*',        destination: `${backend}/api/ai/:path*` },
       { source: '/api/commerces/:path*', destination: `${backend}/api/commerces/:path*` },
