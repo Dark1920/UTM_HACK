@@ -3,14 +3,14 @@ import { createServiceClient, getUser } from '@/lib/supabase/api'
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = createServiceClient()
     const { data: commerce, error } = await supabase
       .from('commerces')
       .select('*, categories(*), utilisateurs(id, nom, prenom)')
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .single()
 
     if (error || !commerce) {
@@ -25,7 +25,7 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getUser(request)
@@ -66,7 +66,7 @@ export async function PUT(
     const { data: commerce, error } = await supabase
       .from('commerces')
       .update(updates)
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .select('*, categories(*), utilisateurs(id, nom, prenom)')
       .single()
 
@@ -82,7 +82,7 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getUser(request)
@@ -94,7 +94,7 @@ export async function DELETE(
     const { error } = await supabase
       .from('commerces')
       .delete()
-      .eq('id', params.id)
+      .eq('id', (await params).id)
 
     if (error) {
       return Response.json({ error: error.message }, { status: 500 })

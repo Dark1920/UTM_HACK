@@ -6,7 +6,7 @@ import { recalculerNoteCommerce } from '@/lib/utils/recalcul-note'
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAdmin(request)
   if (auth instanceof NextResponse) return auth
@@ -18,7 +18,7 @@ export async function DELETE(
     const { data: avis, error: findError } = await supabase
       .from('avis')
       .select('id, commerce_id')
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .single()
 
     if (findError || !avis) {
@@ -29,7 +29,7 @@ export async function DELETE(
     const { error } = await supabase
       .from('avis')
       .delete()
-      .eq('id', params.id)
+      .eq('id', (await params).id)
 
     if (error) {
       console.error('[/api/admin/avis/[id]]', error)
@@ -39,7 +39,7 @@ export async function DELETE(
     // Recalculer la note du commerce
     await recalculerNoteCommerce(supabase, avis.commerce_id)
 
-    return NextResponse.json({ success: true, avisId: params.id })
+    return NextResponse.json({ success: true, avisId: (await params).id })
   } catch (error) {
     console.error('[/api/admin/avis/[id]]', error)
     return NextResponse.json(

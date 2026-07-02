@@ -5,7 +5,7 @@ import { createServiceClient } from '@/lib/supabase/api'
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAdmin(request)
   if (auth instanceof NextResponse) return auth
@@ -20,7 +20,7 @@ export async function PUT(
     const { data: existing, error: findError } = await supabase
       .from('commerces')
       .select('id')
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .single()
 
     if (findError || !existing) {
@@ -42,7 +42,7 @@ export async function PUT(
     const { data: commerce, error } = await supabase
       .from('commerces')
       .update(updateData)
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .select()
       .single()
 
@@ -63,7 +63,7 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAdmin(request)
   if (auth instanceof NextResponse) return auth
@@ -75,7 +75,7 @@ export async function DELETE(
     const { data: existing, error: findError } = await supabase
       .from('commerces')
       .select('id')
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .single()
 
     if (findError || !existing) {
@@ -86,14 +86,14 @@ export async function DELETE(
     const { error } = await supabase
       .from('commerces')
       .delete()
-      .eq('id', params.id)
+      .eq('id', (await params).id)
 
     if (error) {
       console.error('[/api/admin/commerces/[id]]', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, commerceId: params.id })
+    return NextResponse.json({ success: true, commerceId: (await params).id })
   } catch (error) {
     console.error('[/api/admin/commerces/[id]]', error)
     return NextResponse.json(

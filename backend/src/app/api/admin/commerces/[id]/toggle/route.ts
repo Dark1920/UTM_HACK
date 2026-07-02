@@ -5,7 +5,7 @@ import { createServiceClient } from '@/lib/supabase/api'
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAdmin(request)
   if (auth instanceof NextResponse) return auth
@@ -17,7 +17,7 @@ export async function PUT(
     const { data: commerce, error: findError } = await supabase
       .from('commerces')
       .select('id, est_public')
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .single()
 
     if (findError || !commerce) {
@@ -29,7 +29,7 @@ export async function PUT(
     const { error } = await supabase
       .from('commerces')
       .update({ est_public: nouvelEtat })
-      .eq('id', params.id)
+      .eq('id', (await params).id)
 
     if (error) {
       console.error('[/api/admin/commerces/[id]/toggle]', error)
@@ -38,7 +38,7 @@ export async function PUT(
 
     return NextResponse.json({
       success: true,
-      commerceId: params.id,
+      commerceId: (await params).id,
       estPublic: nouvelEtat,
     })
   } catch (error) {

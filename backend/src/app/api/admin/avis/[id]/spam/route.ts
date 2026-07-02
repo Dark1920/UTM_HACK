@@ -6,7 +6,7 @@ import { recalculerNoteCommerce } from '@/lib/utils/recalcul-note'
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAdmin(request)
   if (auth instanceof NextResponse) return auth
@@ -18,7 +18,7 @@ export async function PUT(
     const { data: avis, error: findError } = await supabase
       .from('avis')
       .select('id, commerce_id, is_spam')
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .single()
 
     if (findError || !avis) {
@@ -33,7 +33,7 @@ export async function PUT(
     const { error } = await supabase
       .from('avis')
       .update({ is_spam: true })
-      .eq('id', params.id)
+      .eq('id', (await params).id)
 
     if (error) {
       console.error('[/api/admin/avis/[id]/spam]', error)
@@ -43,7 +43,7 @@ export async function PUT(
     // Recalculer la note du commerce (exclure les spam)
     await recalculerNoteCommerce(supabase, avis.commerce_id)
 
-    return NextResponse.json({ success: true, avisId: params.id, isSpam: true })
+    return NextResponse.json({ success: true, avisId: (await params).id, isSpam: true })
   } catch (error) {
     console.error('[/api/admin/avis/[id]/spam]', error)
     return NextResponse.json(

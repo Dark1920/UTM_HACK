@@ -12,7 +12,7 @@ const COLUMN_BY_TYPE = {
 // Incrémente le compteur correspondant. Pas d'auth : tracking public.
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const body = await request.json().catch(() => ({}))
@@ -32,7 +32,7 @@ export async function POST(
     const { data: current, error: readError } = await supabase
       .from('commerces')
       .select(column)
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .single()
 
     if (readError || !current) {
@@ -44,7 +44,7 @@ export async function POST(
     const { error: updateError } = await supabase
       .from('commerces')
       .update({ [column]: nextValue })
-      .eq('id', params.id)
+      .eq('id', (await params).id)
 
     if (updateError) {
       return Response.json({ error: updateError.message }, { status: 500 })

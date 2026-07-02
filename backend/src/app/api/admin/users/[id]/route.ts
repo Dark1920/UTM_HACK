@@ -11,13 +11,13 @@ const updateSchema = z.object({
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAdmin(request)
   if (auth instanceof NextResponse) return auth
 
   const supabase = createServiceClient()
-  const targetId = params.id
+  const targetId = (await params).id
 
   try {
     const body = await request.json()
@@ -86,13 +86,13 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAdmin(request)
   if (auth instanceof NextResponse) return auth
 
   const supabase = createServiceClient()
-  const targetId = params.id
+  const targetId = (await params).id
 
   try {
     // Protection : un admin ne peut pas se supprimer lui-même

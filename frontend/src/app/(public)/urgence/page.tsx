@@ -235,7 +235,7 @@ export default function UrgencePage() {
                       <div className="flex items-start gap-3.5">
                         <CommercePhoto
                           categorieSlug={commerce.categorie?.slug}
-                          fallbackSrc={commerce.photos[0] || 'https://placehold.co/56x56/e7e5e4/78716c?text=%20'}
+                          fallbackSrc={commerce.photos[0]}
                           alt={commerce.nom}
                           className="w-14 h-14 rounded-md shrink-0"
                         />

@@ -13,7 +13,7 @@ const updateSchema = z.object({
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAdmin(request)
   if (auth instanceof NextResponse) return auth
@@ -35,7 +35,7 @@ export async function PUT(
     const { data: existing, error: findError } = await supabase
       .from('categories')
       .select('id')
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .single()
 
     if (findError || !existing) {
@@ -51,7 +51,7 @@ export async function PUT(
     const { data: categorie, error } = await supabase
       .from('categories')
       .update(updateData)
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .select()
       .single()
 
@@ -79,7 +79,7 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAdmin(request)
   if (auth instanceof NextResponse) return auth
@@ -91,7 +91,7 @@ export async function DELETE(
     const { data: existing, error: findError } = await supabase
       .from('categories')
       .select('id')
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .single()
 
     if (findError || !existing) {
@@ -101,14 +101,14 @@ export async function DELETE(
     const { error } = await supabase
       .from('categories')
       .delete()
-      .eq('id', params.id)
+      .eq('id', (await params).id)
 
     if (error) {
       console.error('[/api/admin/categories/[id]]', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, categoryId: params.id })
+    return NextResponse.json({ success: true, categoryId: (await params).id })
   } catch (error) {
     console.error('[/api/admin/categories/[id]]', error)
     return NextResponse.json(

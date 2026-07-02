@@ -3,7 +3,7 @@ import { createServiceClient, getUser } from '@/lib/supabase/api'
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getUser(request)
@@ -17,7 +17,7 @@ export async function DELETE(
     const { data: avis, error: fetchError } = await supabase
       .from('avis')
       .select('id, user_id, commerce_id')
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .single()
 
     if (fetchError || !avis) {
@@ -28,7 +28,7 @@ export async function DELETE(
       return Response.json({ error: 'Non autorisé' }, { status: 403 })
     }
 
-    const { error } = await supabase.from('avis').delete().eq('id', params.id)
+    const { error } = await supabase.from('avis').delete().eq('id', (await params).id)
     if (error) {
       return Response.json({ error: error.message }, { status: 500 })
     }

@@ -11,7 +11,7 @@ const updateSchema = z.object({
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAdmin(request)
   if (auth instanceof NextResponse) return auth
@@ -35,7 +35,7 @@ export async function PUT(
     const { data: existing, error: findError } = await supabase
       .from('signalements')
       .select('id, statut')
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .single()
 
     if (findError || !existing) {
@@ -52,7 +52,7 @@ export async function PUT(
         resolu_le: new Date().toISOString(),
         note_moderateur: note_moderateur || null,
       })
-      .eq('id', params.id)
+      .eq('id', (await params).id)
 
     if (error) {
       console.error('[/api/admin/signalements/[id]]', error)
@@ -61,7 +61,7 @@ export async function PUT(
 
     return NextResponse.json({
       success: true,
-      signalementId: params.id,
+      signalementId: (await params).id,
       statut: newStatut,
     })
   } catch (error) {
@@ -75,7 +75,7 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAdmin(request)
   if (auth instanceof NextResponse) return auth
@@ -87,7 +87,7 @@ export async function DELETE(
     const { data: existing, error: findError } = await supabase
       .from('signalements')
       .select('id')
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .single()
 
     if (findError || !existing) {
@@ -97,14 +97,14 @@ export async function DELETE(
     const { error } = await supabase
       .from('signalements')
       .delete()
-      .eq('id', params.id)
+      .eq('id', (await params).id)
 
     if (error) {
       console.error('[/api/admin/signalements/[id]]', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, signalementId: params.id })
+    return NextResponse.json({ success: true, signalementId: (await params).id })
   } catch (error) {
     console.error('[/api/admin/signalements/[id]]', error)
     return NextResponse.json(
