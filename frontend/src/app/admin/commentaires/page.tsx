@@ -1,16 +1,34 @@
 "use client";
 
-import { useState } from "react";
-import { Star, Trash2, CheckCircle, AlertTriangle, MessageSquare } from "lucide-react";
-import { mockCommentaires, mockCommerces } from "@/lib/mock-data";
+import { useState, useEffect } from "react";
+import { Star, Trash2, CheckCircle, AlertTriangle, MessageSquare, Loader2 } from "lucide-react";
+import { adminService } from "@/services/admin.service";
+import { commerceService } from "@/services/commerce.service";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import type { Commentaire } from "@/types/commentaire";
+import type { Commerce } from "@/types/commerce";
 
 type Status = "all" | "approved" | "spam";
 
 export default function AdminCommentairesPage() {
   const [filter, setFilter] = useState<Status>("all");
-  const [items, setItems] = useState(mockCommentaires);
+  const [items, setItems] = useState<Commentaire[]>([]);
+  const [commerces, setCommerces] = useState<Commerce[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      adminService.getAvis(),
+      commerceService.getAll(),
+    ])
+      .then(([avisRes, commercesData]) => {
+        setItems(avisRes.avis);
+        setCommerces(commercesData);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
 
   const filtered = items.filter((c) => {
     if (filter === "approved") return !c.estSpam;
@@ -18,24 +36,40 @@ export default function AdminCommentairesPage() {
     return true;
   });
 
-  const approve = (id: string) => {
-    setItems((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, estSpam: false } : c))
-    );
+  const approve = async (id: string) => {
+    try {
+      // Mark as not spam by deleting the spam flag - backend may need a specific endpoint
+      // For now, we optimistically update
+      setItems((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, estSpam: false } : c))
+      );
+    } catch (error) {
+      console.error("Failed to approve:", error);
+    }
   };
 
-  const markSpam = (id: string) => {
-    setItems((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, estSpam: true } : c))
-    );
+  const markSpam = async (id: string) => {
+    try {
+      // Mark as spam - backend may need a specific endpoint
+      setItems((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, estSpam: true } : c))
+      );
+    } catch (error) {
+      console.error("Failed to mark spam:", error);
+    }
   };
 
-  const remove = (id: string) => {
-    setItems((prev) => prev.filter((c) => c.id !== id));
+  const remove = async (id: string) => {
+    try {
+      await adminService.deleteAvis(id);
+      setItems((prev) => prev.filter((c) => c.id !== id));
+    } catch (error) {
+      console.error("Failed to delete avis:", error);
+    }
   };
 
   const getCommerceName = (commerceId: string) => {
-    return mockCommerces.find((c) => c.id === commerceId)?.nom || "Inconnu";
+    return commerces.find((c) => c.id === commerceId)?.nom || "Inconnu";
   };
 
   return (
@@ -45,6 +79,12 @@ export default function AdminCommentairesPage() {
         <p className="text-stone-500 text-sm mt-2">{items.length} commentaires au total</p>
       </div>
 
+      {loading ? (
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="h-6 w-6 animate-spin text-stone-400" />
+        </div>
+      ) : (
+      <>
       <div className="flex gap-2">
         {(["all", "approved", "spam"] as Status[]).map((s) => (
           <Button
@@ -124,6 +164,8 @@ export default function AdminCommentairesPage() {
           </div>
           <p className="text-stone-500 font-medium">Aucun commentaire trouvé</p>
         </div>
+      )}
+      </>
       )}
     </div>
   );

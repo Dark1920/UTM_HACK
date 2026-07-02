@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
+import { env } from '@/lib/env';
 
 export function createServerClient() {
-  const supabaseUrl = process.env.SUPABASE_URL || 'https://placeholder.supabase.co';
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-key';
-  return createClient(supabaseUrl, supabaseServiceKey);
+  // For server-side, use the same anon key (or add SERVICE_ROLE_KEY to env.ts if needed)
+  return createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 }

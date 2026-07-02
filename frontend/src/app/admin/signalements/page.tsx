@@ -1,92 +1,108 @@
 "use client";
 
-import { useState } from "react";
-import { Trash2, XCircle, CheckCircle, Flag } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Trash2, XCircle, CheckCircle, Flag, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { adminService } from "@/services/admin.service";
+import { commerceService } from "@/services/commerce.service";
+import type { Commerce } from "@/types/commerce";
 
 interface Signalement {
   id: string;
-  signaleur: string;
-  commentaireTexte: string;
-  commerce: string;
-  raison: string;
-  date: string;
-  statut: "pending" | "resolved" | "dismissed";
+  commerce_id: string;
+  user_id: string;
+  motif: string;
+  description: string | null;
+  statut: "en_cours" | "traite" | "ignore";
+  created_at: string;
+  updated_at: string;
+  // Enriched fields
+  commerceNom?: string;
+  userEmail?: string;
 }
 
-const MOCK_SIGNALEMENTS: Signalement[] = [
-  {
-    id: "sr-1",
-    signaleur: "Amadou Ouédraogo",
-    commentaireTexte: "Ce commerce est vraiment excellent, je recommande!",
-    commerce: "Atelier de Soudure Merveille",
-    raison: "Contenu publicitaire",
-    date: "2026-06-20",
-    statut: "pending",
-  },
-  {
-    id: "sr-2",
-    signaleur: "Fatimata Sawadogo",
-    commentaireTexte: "Service horrible, ne vais jamais y retourner!!!",
-    commerce: "Plomberie Sanitaire Plus",
-    raison: "Langage injurieux",
-    date: "2026-06-22",
-    statut: "pending",
-  },
-  {
-    id: "sr-3",
-    signaleur: "Ibrahim Compaoré",
-    commentaireTexte: "Venez acheter nos produits, promo exceptionnelle!",
-    commerce: "Menuiserie Bois d'Or",
-    raison: "Spam / publicité",
-    date: "2026-06-24",
-    statut: "pending",
-  },
-  {
-    id: "sr-4",
-    signaleur: "Rasmata Zongo",
-    commentaireTexte: "Très bon travail, merci beaucoup!",
-    commerce: "Coiffure Élégance",
-    raison: "Faux avis",
-    date: "2026-06-18",
-    statut: "resolved",
-  },
-];
+const MOTIF_LABELS: Record<string, string> = {
+  spam: "Spam",
+  inapproprie: "Contenu inapproprié",
+  fausse_info: "Fausse information",
+  arnaque: "Arnaque",
+  autre: "Autre",
+};
 
 export default function AdminSignalementsPage() {
-  const [items, setItems] = useState(MOCK_SIGNALEMENTS);
+  const [items, setItems] = useState<Signalement[]>([]);
+  const [commerces, setCommerces] = useState<Commerce[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const resolve = (id: string) => {
-    setItems((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, statut: "resolved" as const } : s))
-    );
+  useEffect(() => {
+    async function load() {
+      try {
+        const [sigRes, comRes] = await Promise.all([
+          adminService.getSignalements({ limit: 100 }),
+          commerceService.getAll(),
+        ]);
+        setCommerces(comRes);
+        const signalements = (sigRes.signalements || []) as unknown as Signalement[];
+        setItems(signalements);
+      } catch (error) {
+        console.error("Failed to load signalements:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
+
+  const getCommerceName = (commerceId: string) => {
+    const c = commerces.find((x) => x.id === commerceId);
+    return c?.nom || "Commerce inconnu";
   };
 
-  const dismiss = (id: string) => {
-    setItems((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, statut: "dismissed" as const } : s))
-    );
+  const resolve = async (id: string) => {
+    try {
+      await adminService.updateSignalement(id, { statut: "traite" });
+      setItems((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, statut: "traite" } : s))
+      );
+    } catch (error) {
+      console.error("Failed to resolve:", error);
+    }
   };
 
-  const remove = (id: string) => {
-    setItems((prev) => prev.filter((s) => s.id !== id));
+  const dismiss = async (id: string) => {
+    try {
+      await adminService.updateSignalement(id, { statut: "ignore" });
+      setItems((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, statut: "ignore" } : s))
+      );
+    } catch (error) {
+      console.error("Failed to dismiss:", error);
+    }
   };
 
   const statutBadge = (statut: string) => {
     switch (statut) {
-      case "pending":
+      case "en_cours":
         return <Badge variant="warning">En attente</Badge>;
-      case "resolved":
+      case "traite":
         return <Badge variant="success">Résolu</Badge>;
-      case "dismissed":
+      case "ignore":
         return <Badge variant="default">Rejeté</Badge>;
       default:
         return null;
     }
   };
 
-  const pendingCount = items.filter((s) => s.statut === "pending").length;
+  const pendingCount = items.filter((s) => s.statut === "en_cours").length;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-6 w-6 animate-spin text-stone-400" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -104,29 +120,28 @@ export default function AdminSignalementsPage() {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <Flag className="h-4 w-4 text-primary-500" />
-                  <span className="font-semibold text-stone-900">{s.signaleur}</span>
+                  <span className="font-semibold text-stone-900">{getCommerceName(s.commerce_id)}</span>
                   {statutBadge(s.statut)}
                 </div>
                 <p className="text-sm text-stone-500 mb-1.5">
-                  Commerce: <span className="font-medium text-stone-900">{s.commerce}</span>
+                  Motif: <span className="font-medium text-stone-900">{MOTIF_LABELS[s.motif] || s.motif}</span>
                 </p>
-                <p className="text-sm italic text-stone-600 mb-1.5 leading-relaxed">
-                  &ldquo;{s.commentaireTexte}&rdquo;
-                </p>
+                {s.description && (
+                  <p className="text-sm italic text-stone-600 mb-1.5 leading-relaxed">
+                    &ldquo;{s.description}&rdquo;
+                  </p>
+                )}
                 <p className="text-xs text-stone-400">
-                  Raison: {s.raison} &middot; {s.date}
+                  Signalé par: {s.user_id} &middot; {new Date(s.created_at).toLocaleDateString("fr-FR")}
                 </p>
               </div>
-              {s.statut === "pending" && (
+              {s.statut === "en_cours" && (
                 <div className="flex gap-1 shrink-0">
                   <Button variant="ghost" size="sm" onClick={() => resolve(s.id)}>
                     <CheckCircle className="h-4 w-4 text-success-500" />
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => dismiss(s.id)}>
                     <XCircle className="h-4 w-4 text-stone-500" />
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => remove(s.id)}>
-                    <Trash2 className="h-4 w-4 text-error-500" />
                   </Button>
                 </div>
               )}
@@ -146,3 +161,4 @@ export default function AdminSignalementsPage() {
     </div>
   );
 }
+

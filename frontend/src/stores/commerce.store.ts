@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { Commerce } from '@/types/commerce';
 import type { FiltreRecherche } from '@/types/common';
-import { mockCommerces } from '@/lib/mock-data';
+import { commerceService } from '@/services/commerce.service';
 
 interface CommerceState {
   commerces: Commerce[];
@@ -72,6 +72,14 @@ export const useCommerceStore = create<CommerceState>((set, get) => ({
   },
 }));
 
-export function loadMockCommerces() {
-  useCommerceStore.getState().setCommerces(mockCommerces);
+export async function loadCommerces() {
+  useCommerceStore.setState({ isLoading: true });
+  try {
+    const data = await commerceService.getAll();
+    useCommerceStore.getState().setCommerces(data);
+  } catch (error) {
+    console.error('Failed to load commerces:', error);
+  } finally {
+    useCommerceStore.setState({ isLoading: false });
+  }
 }

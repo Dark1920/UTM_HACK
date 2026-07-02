@@ -15,8 +15,15 @@ export default function DashboardLayout({
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Wait for client-side hydration to avoid mismatch
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   useEffect(() => {
+    if (!isHydrated) return;
     if (!isAuthenticated || !user) {
       router.push(ROUTES.CONNEXION);
       return;
@@ -24,12 +31,21 @@ export default function DashboardLayout({
     if (user.role === 'admin') {
       router.push(ROUTES.ADMIN);
     }
-  }, [isAuthenticated, user, router]);
+  }, [isHydrated, isAuthenticated, user, router]);
 
   const handleLogout = () => {
     logout();
     router.push(ROUTES.HOME);
   };
+
+  // Show nothing during SSR or before hydration
+  if (!isHydrated) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="h-16 border-b border-stone-200" />
+      </div>
+    );
+  }
 
   if (!isAuthenticated || !user || user.role === 'admin') {
     return null;

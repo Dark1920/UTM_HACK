@@ -2,8 +2,7 @@
 
 import { useEffect, useMemo } from 'react';
 import { useSearchStore } from '@/stores/search.store';
-import { useCommerceStore } from '@/stores/commerce.store';
-import { mockCommerces } from '@/lib/mock-data';
+import { useCommerceStore, loadCommerces } from '@/stores/commerce.store';
 import type { Commerce } from '@/types/commerce';
 
 export function useSearch() {
@@ -25,7 +24,7 @@ export function useSearch() {
 
   useEffect(() => {
     if (commerces.length === 0) {
-      useCommerceStore.getState().setCommerces(mockCommerces);
+      loadCommerces();
     }
   }, [commerces.length]);
 

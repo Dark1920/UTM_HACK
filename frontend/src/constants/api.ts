@@ -1,48 +1,65 @@
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+// URL de base du backend (artisanbf)
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
 export const API_ENDPOINTS = {
   AUTH: {
-    LOGIN: '/api/auth/login',
-    REGISTER: '/api/auth/register',
-    LOGOUT: '/api/auth/logout',
-    RESET_PASSWORD: '/api/auth/reset-password',
+    LOGIN: '/auth/connexion',
+    REGISTER: '/auth/inscription',
+    LOGOUT: '/auth/deconnexion',
+    RESET_PASSWORD: '/auth/reinitialisation',
   },
   COMMERCES: {
-    LIST: '/api/commerces',
-    DETAIL: (id: string) => `/api/commerces/${id}`,
-    CREATE: '/api/commerces',
-    UPDATE: (id: string) => `/api/commerces/${id}`,
-    DELETE: (id: string) => `/api/commerces/${id}`,
+    LIST: '/commerces',
+    DETAIL: (id: string) => `/commerces/${id}`,
+    CREATE: '/commerces',
+    UPDATE: (id: string) => `/commerces/${id}`,
+    DELETE: (id: string) => `/commerces/${id}`,
   },
-  COMMENTAIRES: {
-    LIST: (commerceId: string) => `/api/commentaires?commerceId=${commerceId}`,
-    CREATE: '/api/commentaires',
-    DELETE: (id: string) => `/api/commentaires/${id}`,
+  CATEGORIES: {
+    LIST: '/categories',
+    SEARCH: (q: string) => `/categories?q=${q}`,
   },
-  FAVORIS: {
-    LIST: '/api/favoris',
-    TOGGLE: '/api/favoris',
+  AVIS: {
+    LIST: (commerceId: string) => `/avis?commerce_id=${commerceId}`,
+    CREATE: '/avis',
+    DELETE: (id: string) => `/avis/${id}`,
   },
-  UPLOAD: '/api/upload',
-  GEOLOCATION: '/api/geolocation',
+  RECHERCHE: {
+    SEARCH: '/recherche',
+    PROXIMITE: '/recherche/proximite',
+  },
+  GEOCODING: {
+    SEARCH: '/geocoding',
+    REVERSE: '/geocoding',
+  },
   IA: {
-    ANALYSE: '/api/ia/analyse',
-    RESUME: '/api/ia/resume',
-    SPAM: '/api/ia/spam',
+    ANALYZE: '/ai/analyze',
+    SUMMARIZE: '/ai/summarize',
+    SPEECH_TO_TEXT: '/ai/speech-to-text',
+    VOICE_SEARCH: '/ai/voice-search',
   },
-  STATISTIQUES: {
-    COMMERCE: (id: string) => `/api/statistiques/commerce/${id}`,
-    GLOBALES: '/api/statistiques/globales',
-  },
-  SIGNALEMENTS: {
-    LIST: '/api/signalements',
-    CREATE: '/api/signalements',
-  },
-  WHATSAPP: '/api/whatsapp',
   ADMIN: {
-    USERS: '/api/admin/utilisateurs',
-    COMMERCES: '/api/admin/commerces',
-    COMMENTAIRES: '/api/admin/commentaires',
-    CATEGORIES: '/api/admin/categories',
+    UTILISATEURS: {
+      LIST: '/admin/utilisateurs',
+      DETAIL: (id: string) => `/admin/utilisateurs/${id}`,
+    },
+    COMMERCES: {
+      LIST: '/admin/commerces',
+      DETAIL: (id: string) => `/admin/commerces/${id}`,
+      STATUT: (id: string) => `/admin/commerces/${id}/statut`,
+    },
+    AVIS: {
+      LIST: '/admin/avis',
+      DETAIL: (id: string) => `/admin/avis/${id}`,
+    },
+    CATEGORIES: {
+      LIST: '/admin/categories',
+      DETAIL: (id: string) => `/admin/categories/${id}`,
+    },
+    SIGNALEMENTS: {
+      LIST: '/admin/signalements',
+      DETAIL: (id: string) => `/admin/signalements/${id}`,
+    },
+    STATISTIQUES: '/admin/statistiques',
   },
 } as const;

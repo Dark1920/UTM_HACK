@@ -49,13 +49,18 @@
  *       400:
  *         description: Erreur de validation
  */
+import { createClient } from '@supabase/supabase-js';
+
 export async function POST(request: Request) {
   try {
-    const { createClient } = await import('@/lib/supabase/server')
-    const supabase = createClient()
+    // Use a direct Supabase client (not cookie-based) for API authentication
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
 
     const body = await request.json()
-    const { email, password, nom, prenom, role = 'citoyen' } = body
+    const { email, password, nom, prenom, telephone, role = 'citoyen' } = body
 
     if (!email || !password || !nom) {
       return Response.json(
@@ -88,28 +93,72 @@ export async function POST(request: Request) {
       return Response.json({ error: authError.message }, { status: 400 })
     }
 
-    // Création du profil dans la table utilisateurs
-    if (authData.user) {
-      const { error: profileError } = await supabase
+    // Auto-confirm the user email using service role key (bypasses email confirmation)
+    if (authData.user && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      const supabaseAdmin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY
+      )
+
+      // Confirm the user's email
+      await supabaseAdmin.auth.admin.updateUserById(
+        authData.user.id,
+        { email_confirm: true }
+      )
+
+      // Sign in the user to get a session
+      const { data: signInData } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
+
+      // Création du profil dans la table utilisateurs
+      // Use service role client to bypass RLS policies
+      const insertData: Record<string, unknown> = {
+        id: authData.user.id,
+        nom,
+        role
+      };
+      if (prenom) insertData.prenom = prenom;
+      if (telephone) insertData.telephone = telephone;
+
+      const { error: profileError } = await supabaseAdmin
         .from('utilisateurs')
-        .insert({
-          id: authData.user.id,
-          email,
-          nom,
-          prenom,
-          role
-        })
+        .insert(insertData)
 
       if (profileError) {
         console.error('Erreur création profil:', profileError)
       }
+
+      return Response.json({
+        message: 'Inscription réussie',
+        user: signInData.user || authData.user,
+        session: signInData.session,
+        profil: {
+          id: authData.user.id,
+          nom,
+          prenom: prenom || null,
+          telephone: telephone || null,
+          role,
+        },
+      }, { status: 201 })
     }
 
+    // Fallback: service role key not available
     return Response.json({
-      message: 'Inscription réussie ! Vérifiez votre email.',
-      user: authData.user
+      message: 'Inscription réussie',
+      user: authData.user,
+      session: authData.session,
+      profil: authData.user ? {
+        id: authData.user.id,
+        nom,
+        prenom: prenom || null,
+        telephone: telephone || null,
+        role,
+      } : null,
     }, { status: 201 })
   } catch (error) {
+    console.error('Inscription error:', error)
     return Response.json(
       { error: 'Erreur interne du serveur' },
       { status: 500 }

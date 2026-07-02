@@ -1,17 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/stores/auth.store';
-import { mockCommerces } from '@/lib/mock-data';
-import { Plus, Edit2, Trash2, Eye, Star, X, Store } from 'lucide-react';
+import { commerceService } from '@/services/commerce.service';
+import { categoryService, type Categorie } from '@/services/category.service';
+import { Plus, Edit2, Trash2, Eye, Star, X, Store, Loader2 } from 'lucide-react';
 import type { Commerce } from '@/types/commerce';
-import { CATEGORIES } from '@/constants/categories';
+import LocationPicker from '@/components/ui/location-picker';
+
+// Default coordinates for Ouagadougou
+const DEFAULT_LAT = 12.3714;
+const DEFAULT_LNG = -1.5197;
 
 export default function CommercesPage() {
   const { user } = useAuthStore();
-  const [commerces, setCommerces] = useState<Commerce[]>(
-    mockCommerces.filter((c) => c.artisanId === user?.id)
-  );
+  const [commerces, setCommerces] = useState<Commerce[]>([]);
+  const [categories, setCategories] = useState<Categorie[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingCommerce, setEditingCommerce] = useState<Commerce | null>(null);
   const [formData, setFormData] = useState({
@@ -22,6 +27,25 @@ export default function CommercesPage() {
     ville: '',
     telephone: '',
   });
+  const [location, setLocation] = useState({
+    latitude: DEFAULT_LAT,
+    longitude: DEFAULT_LNG,
+  });
+
+  useEffect(() => {
+    // Fetch categories from API
+    categoryService.getAll()
+      .then(setCategories)
+      .catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    commerceService.getAll({ artisanId: user.id })
+      .then(setCommerces)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [user?.id]);
 
   const handleOpenModal = (commerce?: Commerce) => {
     if (commerce) {
@@ -34,52 +58,63 @@ export default function CommercesPage() {
         ville: commerce.ville,
         telephone: commerce.telephone,
       });
+      setLocation({
+        latitude: commerce.latitude || DEFAULT_LAT,
+        longitude: commerce.longitude || DEFAULT_LNG,
+      });
     } else {
       setEditingCommerce(null);
       setFormData({ nom: '', description: '', categorieId: '', adresse: '', ville: '', telephone: '' });
+      setLocation({ latitude: DEFAULT_LAT, longitude: DEFAULT_LNG });
     }
     setShowModal(true);
   };
 
-  const handleSave = () => {
-    if (editingCommerce) {
-      setCommerces((prev) =>
-        prev.map((c) =>
-          c.id === editingCommerce.id
-            ? { ...c, ...formData, dateModification: new Date().toISOString() }
-            : c
-        )
-      );
-    } else {
-      const newCommerce: Commerce = {
-        id: `com-${Date.now()}`,
-        ...formData,
-        artisanId: user?.id || '',
-        latitude: 12.3714,
-        longitude: -1.5197,
-        photos: [],
-        note: 0,
-        nombreAvis: 0,
-        nombreVues: 0,
-        nombreAppels: 0,
-        nombreClicsWhatsApp: 0,
-        estPublic: true,
-        dateCreation: new Date().toISOString(),
-        dateModification: new Date().toISOString(),
-      };
-      setCommerces((prev) => [...prev, newCommerce]);
+  const handleSave = async () => {
+    try {
+      if (editingCommerce) {
+        const updated = await commerceService.update(editingCommerce.id, {
+          ...formData,
+          latitude: location.latitude,
+          longitude: location.longitude,
+        });
+        setCommerces((prev) =>
+          prev.map((c) => (c.id === editingCommerce.id ? updated : c))
+        );
+      } else {
+        const newCommerce = await commerceService.create({
+          ...formData,
+          latitude: location.latitude,
+          longitude: location.longitude,
+        });
+        setCommerces((prev) => [...prev, newCommerce]);
+      }
+      setShowModal(false);
+    } catch (error) {
+      console.error('Failed to save commerce:', error);
     }
-    setShowModal(false);
   };
 
-  const handleDelete = (id: string) => {
-    setCommerces((prev) => prev.filter((c) => c.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      await commerceService.delete(id);
+      setCommerces((prev) => prev.filter((c) => c.id !== id));
+    } catch (error) {
+      console.error('Failed to delete commerce:', error);
+    }
   };
 
-  const togglePublic = (id: string) => {
-    setCommerces((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, estPublic: !c.estPublic } : c))
-    );
+  const togglePublic = async (id: string) => {
+    const commerce = commerces.find((c) => c.id === id);
+    if (!commerce) return;
+    try {
+      const updated = await commerceService.update(id, { estPublic: !commerce.estPublic } as never);
+      setCommerces((prev) =>
+        prev.map((c) => (c.id === id ? updated : c))
+      );
+    } catch (error) {
+      console.error('Failed to toggle commerce:', error);
+    }
   };
 
   return (
@@ -98,7 +133,11 @@ export default function CommercesPage() {
         </button>
       </div>
 
-      {commerces.length === 0 ? (
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-6 w-6 animate-spin text-stone-400" />
+        </div>
+      ) : commerces.length === 0 ? (
         <div className="rounded-lg border border-dashed border-stone-300 p-12 text-center">
           <Store className="h-10 w-10 text-stone-300 mx-auto mb-3" />
           <h3 className="text-base font-medium text-stone-900 mb-1">Aucun commerce</h3>
@@ -129,7 +168,7 @@ export default function CommercesPage() {
               </thead>
               <tbody className="divide-y divide-stone-200">
                 {commerces.map((commerce) => {
-                  const categorie = CATEGORIES.find((c) => c.id === commerce.categorieId);
+                  const categorie = categories.find((c) => c.id === commerce.categorieId);
                   return (
                     <tr key={commerce.id} className="hover:bg-stone-50">
                       <td className="px-5 py-3.5">
@@ -191,10 +230,10 @@ export default function CommercesPage() {
       )}
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-stone-900/50" onClick={() => setShowModal(false)} />
-          <div className="relative z-10 w-full max-w-lg mx-4 bg-white rounded-lg border border-stone-200">
-            <div className="flex items-center justify-between border-b border-stone-200 px-5 py-4">
+          <div className="relative z-10 w-full max-w-lg bg-white rounded-lg border border-stone-200 max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between border-b border-stone-200 px-5 py-4 flex-shrink-0">
               <h2 className="text-base font-semibold text-stone-900">
                 {editingCommerce ? 'Modifier le commerce' : 'Nouveau commerce'}
               </h2>
@@ -205,7 +244,7 @@ export default function CommercesPage() {
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <div className="px-5 py-4 space-y-4">
+            <div className="px-5 py-4 space-y-4 overflow-y-auto flex-1">
               <div>
                 <label className="block text-sm font-medium text-stone-800 mb-1.5">Nom</label>
                 <input
@@ -234,8 +273,8 @@ export default function CommercesPage() {
                   className="w-full h-10 px-3 border border-stone-300 rounded-md text-sm outline-none focus:ring-1 focus:ring-stone-900 focus:border-stone-900"
                 >
                   <option value="">Sélectionner une catégorie</option>
-                  {CATEGORIES.map((cat) => (
-                    <option key={cat.id} value={cat.id}>{cat.nom}</option>
+                  {categories.map((cat: Categorie) => (
+                    <option key={cat.id} value={cat.nom}>{cat.nom}</option>
                   ))}
                 </select>
               </div>
@@ -271,8 +310,19 @@ export default function CommercesPage() {
                   />
                 </div>
               </div>
+              
+              {/* Location Map */}
+              <div>
+                <label className="block text-sm font-medium text-stone-800 mb-1.5">Localisation</label>
+                <LocationPicker
+                  latitude={location.latitude}
+                  longitude={location.longitude}
+                  onChange={(lat, lng) => setLocation({ latitude: lat, longitude: lng })}
+                  address={formData.adresse}
+                />
+              </div>
             </div>
-            <div className="flex items-center justify-end gap-2.5 border-t border-stone-200 px-5 py-4">
+            <div className="flex items-center justify-end gap-2.5 border-t border-stone-200 px-5 py-4 flex-shrink-0">
               <button
                 onClick={() => setShowModal(false)}
                 className="h-9 px-4 text-sm font-medium text-stone-700 hover:bg-stone-100 rounded-md transition-colors"

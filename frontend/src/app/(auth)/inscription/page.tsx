@@ -64,8 +64,9 @@ export default function InscriptionPage() {
         role: data.role,
       });
       router.push(ROUTES.DASHBOARD);
-    } catch {
-      setFormError('Une erreur est survenue. Veuillez réessayer.');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Une erreur est survenue. Veuillez réessayer.';
+      setFormError(message);
     }
   };
 

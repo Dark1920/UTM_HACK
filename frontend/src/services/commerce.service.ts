@@ -1,7 +1,7 @@
-import { mockCommerces } from '@/lib/mock-data';
+import { apiClient } from '@/lib/api-client';
+import { API_ENDPOINTS } from '@/constants/api';
+import { mapCommerceFromAPI, mapCommerceToAPI } from '@/lib/mappers';
 import type { Commerce, CreateCommerceData } from '@/types/commerce';
-
-const commerces = [...mockCommerces];
 
 export interface CommerceFilters {
   categorieId?: string;
@@ -11,90 +11,63 @@ export interface CommerceFilters {
 }
 
 export const commerceService = {
+  /**
+   * Récupérer tous les commerces (avec filtres optionnels)
+   */
   async getAll(filters?: CommerceFilters): Promise<Commerce[]> {
-    await new Promise(r => setTimeout(r, 300));
-    let result = commerces.filter(c => c.estPublic);
+    const params: Record<string, string> = {};
+    
+    if (filters?.categorieId) params.categorieId = filters.categorieId;
+    if (filters?.ville) params.ville = filters.ville;
+    if (filters?.search) params.search = filters.search;
+    if (filters?.artisanId) params.artisanId = filters.artisanId;
 
-    if (filters?.categorieId) {
-      result = result.filter(c => c.categorieId === filters.categorieId);
-    }
-    if (filters?.ville) {
-      result = result.filter(c => c.ville.toLowerCase() === filters.ville!.toLowerCase());
-    }
-    if (filters?.artisanId) {
-      result = result.filter(c => c.artisanId === filters.artisanId);
-    }
-    if (filters?.search) {
-      const s = filters.search.toLowerCase();
-      result = result.filter(c =>
-        c.nom.toLowerCase().includes(s) ||
-        c.description.toLowerCase().includes(s) ||
-        c.adresse.toLowerCase().includes(s)
-      );
-    }
-
-    return result;
+    const response = await apiClient.get<{ commerces: Record<string, unknown>[] }>(
+      API_ENDPOINTS.COMMERCES.LIST,
+      { params }
+    );
+    
+    return (response.commerces || []).map(mapCommerceFromAPI);
   },
 
-  async getById(id: string): Promise<Commerce | undefined> {
-    await new Promise(r => setTimeout(r, 200));
-    return commerces.find(c => c.id === id);
+  /**
+   * Récupérer un commerce par son ID
+   */
+  async getById(id: string): Promise<Commerce> {
+    const raw = await apiClient.get<Record<string, unknown>>(
+      API_ENDPOINTS.COMMERCES.DETAIL(id)
+    );
+    return mapCommerceFromAPI(raw);
   },
 
-  async create(data: CreateCommerceData, artisanId: string): Promise<Commerce> {
-    await new Promise(r => setTimeout(r, 400));
-    const newCommerce: Commerce = {
-      ...data,
-      id: 'com-' + Date.now(),
-      artisanId,
-      photos: [],
-      note: 0,
-      nombreAvis: 0,
-      nombreVues: 0,
-      nombreAppels: 0,
-      nombreClicsWhatsApp: 0,
-      estPublic: true,
-      dateCreation: new Date().toISOString(),
-      dateModification: new Date().toISOString(),
-    };
-    commerces.push(newCommerce);
-    return newCommerce;
+  /**
+   * Créer un nouveau commerce
+   */
+  async create(data: CreateCommerceData): Promise<Commerce> {
+    const raw = await apiClient.post<Record<string, unknown>>(
+      API_ENDPOINTS.COMMERCES.CREATE,
+      mapCommerceToAPI(data)
+    );
+    return mapCommerceFromAPI(raw);
   },
 
+  /**
+   * Mettre à jour un commerce
+   */
   async update(id: string, data: Partial<CreateCommerceData>): Promise<Commerce> {
-    await new Promise(r => setTimeout(r, 400));
-    const index = commerces.findIndex(c => c.id === id);
-    if (index === -1) throw new Error('Commerce non trouvé');
-    commerces[index] = {
-      ...commerces[index],
-      ...data,
-      dateModification: new Date().toISOString(),
-    };
-    return commerces[index];
+    const raw = await apiClient.put<Record<string, unknown>>(
+      API_ENDPOINTS.COMMERCES.UPDATE(id),
+      mapCommerceToAPI(data as CreateCommerceData)
+    );
+    return mapCommerceFromAPI(raw);
   },
 
+  /**
+   * Supprimer un commerce
+   */
   async delete(id: string): Promise<void> {
-    await new Promise(r => setTimeout(r, 300));
-    const index = commerces.findIndex(c => c.id === id);
-    if (index === -1) throw new Error('Commerce non trouvé');
-    commerces.splice(index, 1);
-  },
-
-  async incrementView(id: string): Promise<void> {
-    await new Promise(r => setTimeout(r, 100));
-    const commerce = commerces.find(c => c.id === id);
-    if (commerce) commerce.nombreVues += 1;
-  },
-
-  async incrementCall(id: string): Promise<void> {
-    await new Promise(r => setTimeout(r, 100));
-    const commerce = commerces.find(c => c.id === id);
-    if (commerce) commerce.nombreAppels += 1;
-  },
-
-  async incrementWhatsAppClick(id: string): Promise<void> {
-    await new Promise(r => setTimeout(r, 100));
-    const commerce = commerces.find(c => c.id === id);
-    if (commerce) commerce.nombreClicsWhatsApp += 1;
+    return apiClient.delete<void>(
+      API_ENDPOINTS.COMMERCES.DELETE(id)
+    );
   },
 };

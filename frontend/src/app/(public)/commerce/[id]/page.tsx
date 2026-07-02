@@ -1,14 +1,19 @@
 'use client';
 
-import { useState, use } from 'react';
+import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { Star, MapPin, Phone, MessageCircle, Heart, ArrowLeft, Send, Share2 } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
-import { getCommerceById, mockCommerces, mockCategories, mockCommentaires, mockCitoyens } from '@/lib/mock-data';
+import { CATEGORIES } from '@/constants/categories';
+import { commerceService } from '@/services/commerce.service';
+import { commentaireService } from '@/services/commentaire.service';
+import { useAuthStore } from '@/stores/auth.store';
 import { usePexelsPhotos } from '@/hooks/usePexelsPhotos';
 import { CATEGORY_PEXELS_QUERY } from '@/constants/pexels';
 import { CommercePhoto } from '@/components/commerces/commerce-photo';
 import MapLeaflet from '@/components/maps/map-leaflet';
+import type { Commerce } from '@/types/commerce';
+import type { Commentaire } from '@/types/commentaire';
 
 function PhotoGallery({ photos: fallbackPhotos, name, categorieId }: { photos: string[]; name: string; categorieId: string }) {
   const [selected, setSelected] = useState(0);
@@ -41,11 +46,49 @@ function PhotoGallery({ photos: fallbackPhotos, name, categorieId }: { photos: s
 
 export default function CommerceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const commerce = getCommerceById(id);
+  const { user } = useAuthStore();
+  const [commerce, setCommerce] = useState<Commerce | null>(null);
+  const [commerceReviews, setCommerceReviews] = useState<Commentaire[]>([]);
+  const [related, setRelated] = useState<Commerce[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
   const [reviewText, setReviewText] = useState('');
   const [reviewRating, setReviewRating] = useState(0);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const [commerceData, reviewsData, allCommerces] = await Promise.all([
+          commerceService.getById(id),
+          commentaireService.getByCommerceId(id),
+          commerceService.getAll(),
+        ]);
+        setCommerce(commerceData);
+        setCommerceReviews(reviewsData);
+        setRelated(
+          allCommerces
+            .filter((c) => c.categorieId === commerceData.categorieId && c.id !== commerceData.id)
+            .slice(0, 3)
+        );
+      } catch (error) {
+        console.error('Failed to load commerce:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-stone-500">Chargement...</p>
+      </div>
+    );
+  }
 
   if (!commerce) {
     return (
@@ -61,18 +104,33 @@ export default function CommerceDetailPage({ params }: { params: Promise<{ id: s
     );
   }
 
-  const category = mockCategories.find((c) => c.id === commerce.categorieId);
-  const commerceReviews = mockCommentaires.filter((c) => c.commerceId === commerce.id);
-  const related = mockCommerces
-    .filter((c) => c.categorieId === commerce.categorieId && c.id !== commerce.id)
-    .slice(0, 3);
+  const category = CATEGORIES.find((c) => c.id === commerce?.categorieId);
 
-  const handleSubmitReview = (e: React.FormEvent) => {
+  const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (reviewText.trim() && reviewRating > 0) {
+    if (!reviewText.trim() || reviewRating === 0) return;
+    if (!user) {
+      setSubmitError('Vous devez être connecté pour laisser un avis.');
+      return;
+    }
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const newReview = await commentaireService.create({
+        texte: reviewText.trim(),
+        note: reviewRating,
+        auteurId: user.id,
+        commerceId: id,
+      });
+      setCommerceReviews((prev) => [newReview, ...prev]);
       setSubmitted(true);
       setReviewText('');
       setReviewRating(0);
+    } catch (error) {
+      console.error('Failed to submit review:', error);
+      setSubmitError("Erreur lors de l'envoi de l'avis. Veuillez réessayer.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -166,9 +224,27 @@ export default function CommerceDetailPage({ params }: { params: Promise<{ id: s
               {submitted ? (
                 <div className="bg-success-50 border border-success-200 rounded-md p-3.5 mb-6">
                   <p className="text-success-700 text-sm font-medium">Merci ! Votre avis a été soumis.</p>
+                  <button
+                    onClick={() => setSubmitted(false)}
+                    className="text-success-700 text-sm underline mt-1 hover:text-success-800"
+                  >
+                    Laisser un autre avis
+                  </button>
+                </div>
+              ) : !user ? (
+                <div className="bg-stone-50 border border-stone-200 rounded-md p-4 mb-6 text-center">
+                  <p className="text-stone-600 text-sm mb-2">Connectez-vous pour laisser un avis.</p>
+                  <Link href={ROUTES.CONNEXION} className="text-sm font-medium text-stone-900 underline hover:text-stone-700">
+                    Se connecter
+                  </Link>
                 </div>
               ) : (
                 <form onSubmit={handleSubmitReview} className="mb-6 border border-stone-200 rounded-md p-4">
+                  {submitError && (
+                    <div className="bg-error-50 border border-error-200 rounded-md p-3 mb-4">
+                      <p className="text-error-700 text-sm">{submitError}</p>
+                    </div>
+                  )}
                   <div className="mb-3">
                     <label className="block text-sm font-medium text-stone-800 mb-1.5">Votre note</label>
                     <div className="flex gap-0.5">
@@ -188,15 +264,16 @@ export default function CommerceDetailPage({ params }: { params: Promise<{ id: s
                     onChange={(e) => setReviewText(e.target.value)}
                     placeholder="Partagez votre expérience..."
                     rows={3}
-                    className="w-full px-3 py-2 border border-stone-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-stone-900 focus:border-stone-900 resize-none"
+                    disabled={submitting}
+                    className="w-full px-3 py-2 border border-stone-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-stone-900 focus:border-stone-900 resize-none disabled:opacity-60"
                   />
                   <button
                     type="submit"
-                    disabled={!reviewText.trim() || reviewRating === 0}
+                    disabled={!reviewText.trim() || reviewRating === 0 || submitting}
                     className="mt-2.5 inline-flex items-center gap-2 h-9 px-4 bg-stone-900 text-white text-sm font-medium rounded-md hover:bg-stone-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
                     <Send className="h-3.5 w-3.5" />
-                    Envoyer
+                    {submitting ? 'Envoi...' : 'Envoyer'}
                   </button>
                 </form>
               )}
@@ -206,18 +283,17 @@ export default function CommerceDetailPage({ params }: { params: Promise<{ id: s
                   <p className="text-stone-400 text-sm text-center py-8">Aucun avis pour le moment.</p>
                 ) : (
                   commerceReviews.map((review) => {
-                    const author = mockCitoyens.find((c) => c.id === review.auteurId);
                     return (
                       <div key={review.id} className="border-b border-stone-200 last:border-0 pb-4 last:pb-0">
                         <div className="flex items-center gap-3 mb-2">
                           <div className="w-8 h-8 rounded-md bg-stone-900 flex items-center justify-center">
                             <span className="text-xs font-medium text-white">
-                              {author?.prenom?.[0]}{author?.nom?.[0]}
+                              {review.auteurId.slice(0, 2).toUpperCase()}
                             </span>
                           </div>
                           <div>
                             <p className="text-sm font-medium text-stone-900">
-                              {author?.prenom} {author?.nom}
+                              Utilisateur
                             </p>
                             <div className="flex items-center gap-1">
                               {Array.from({ length: 5 }, (_, i) => (

@@ -3,8 +3,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertTriangle, Phone, MessageCircle, Locate, Loader2 } from 'lucide-react';
-import { mockCommerces, mockCategories } from '@/lib/mock-data';
+import { CATEGORIES } from '@/constants/categories';
+import { commerceService } from '@/services/commerce.service';
 import MapLeaflet from '@/components/maps/map-leaflet';
+import type { Commerce } from '@/types/commerce';
 
 interface GeolocationState {
   lat: number;
@@ -26,8 +28,13 @@ function getDistance(lat1: number, lon1: number, lat2: number, lon2: number): nu
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+interface CommerceWithDistance extends Commerce {
+  distance: number;
+}
+
 export default function UrgencePage() {
   const router = useRouter();
+  const [commerces, setCommerces] = useState<Commerce[]>([]);
   const [geo, setGeo] = useState<GeolocationState>({
     lat: 0,
     lng: 0,
@@ -60,10 +67,14 @@ export default function UrgencePage() {
     requestLocation();
   }, [requestLocation]);
 
-  const nearbyCommerces = userLocated
-    ? mockCommerces
+  useEffect(() => {
+    commerceService.getAll().then(setCommerces).catch(console.error);
+  }, []);
+
+  const nearbyCommerces: CommerceWithDistance[] = userLocated
+    ? commerces
         .filter((c) => c.estPublic)
-        .map((c) => ({
+        .map((c): CommerceWithDistance => ({
           ...c,
           distance: getDistance(geo.lat, geo.lng, c.latitude, c.longitude),
         }))
@@ -120,7 +131,7 @@ export default function UrgencePage() {
             >
               Tous
             </button>
-            {mockCategories.map((cat) => (
+            {CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
@@ -166,7 +177,7 @@ export default function UrgencePage() {
             ) : (
               <div className="space-y-2.5">
                 {nearbyCommerces.map((commerce) => {
-                  const category = mockCategories.find((c) => c.id === commerce.categorieId);
+                  const category = CATEGORIES.find((c) => c.id === commerce.categorieId);
                   return (
                     <div
                       key={commerce.id}

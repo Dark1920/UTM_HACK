@@ -130,26 +130,26 @@ export async function GET(request: Request) {
  */
 export async function POST(request: Request) {
   try {
-    const { createClient } = await import('@/lib/supabase/server')
-    const supabase = createClient()
+    // Vérifier l'authentification via le header Bearer
+    const { requireAuth } = await import('@/lib/supabase/auth-guard')
+    const auth = await requireAuth(request)
+    if (auth instanceof Response) return auth // 401
 
-    // Récupérer l'utilisateur connecté
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
-    if (authError || !user) {
-      return Response.json(
-        { error: 'Vous devez être connecté pour créer un commerce' },
-        { status: 401 }
-      )
-    }
+    const { userId } = auth
+
+    // Utiliser le service role key pour bypasser RLS
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const { createClient: createServiceClient } = await import('@supabase/supabase-js')
+    const supabase = createServiceClient(supabaseUrl!, supabaseKey!)
 
     const body = await request.json()
-    const { nom, categorie, localisation, ville, telephone, description } = body
+    const { nom, categorie, localisation, ville, telephone, description, latitude: bodyLat, longitude: bodyLng } = body
 
     // Validation des champs obligatoires
-    if (!nom || !categorie || !localisation || !ville) {
+    if (!nom || !categorie || !ville) {
       return Response.json(
-        { error: 'Les champs nom, categorie, localisation et ville sont requis' },
+        { error: 'Les champs nom, categorie et ville sont requis' },
         { status: 400 }
       )
     }
@@ -171,13 +171,13 @@ export async function POST(request: Request) {
 
     const categorie_id = categoryData.id
 
-    // 2. Géocodage automatique avec gestion d'erreurs améliorée
-    let latitude = body.latitude || null
-    let longitude = body.longitude || null
+    // 2. Géocodage automatique (optionnel - peut être fait plus tard)
+    let latitude = bodyLat ? parseFloat(bodyLat) : null
+    let longitude = bodyLng ? parseFloat(bodyLng) : null
     let geocodingSuccess = false
     
-    // Si les coordonnées ne sont pas fournies, on géocode
-    if (!latitude || !longitude) {
+    // Si les coordonnées ne sont pas fournies et qu'on a une adresse, on géocode
+    if ((!latitude || !longitude) && localisation) {
       try {
         const adresseComplete = `${localisation}, ${ville}, Burkina Faso`
         
@@ -249,17 +249,31 @@ export async function POST(request: Request) {
     // 3. Création du commerce
     const insertData: any = { 
       nom, 
-      localisation,
       ville,
       categorie_id,
-      user_id: user.id,
+      user_id: userId,
       statut: 'en_attente'
     }
     
+    // Optional fields
     if (telephone) insertData.telephone = telephone
     if (description) insertData.description = description
-    if (latitude !== null) insertData.latitude = latitude
-    if (longitude !== null) insertData.longitude = longitude
+    
+    // Handle coordinates - provide defaults if not available (schema requires NOT NULL)
+    if (latitude !== null && longitude !== null) {
+      insertData.latitude = latitude
+      insertData.longitude = longitude
+      // Create proper PostGIS geography point for localisation column
+      // Format: SRID=4326;POINT(longitude latitude)
+      insertData.localisation = `SRID=4326;POINT(${longitude} ${latitude})`
+    } else {
+      // Default to Ouagadougou center if no coordinates - can be updated later
+      insertData.latitude = 12.3714
+      insertData.longitude = -1.5197
+      insertData.localisation = 'SRID=4326;POINT(-1.5197 12.3714)'
+    }
+
+    console.log('Insert data:', JSON.stringify(insertData, null, 2));
 
     const { data: commerce, error } = await supabase
       .from('commerces')
@@ -268,13 +282,17 @@ export async function POST(request: Request) {
       .single()
 
     if (error) {
+      console.error('Supabase insert error:', error);
+      console.error('Error message:', error.message);
+      console.error('Error details:', error.details);
+      console.error('Error hint:', error.hint);
       return Response.json({ error: error.message }, { status: 500 })
     }
 
     return Response.json({
       ...commerce,
-      message: 'Commerce créé avec succès ! Les coordonnées GPS ont été automatiquement calculées.',
-      geocodage: latitude && longitude ? 'réussi' : 'échoué (adresse peut-être imprécise)'
+      message: 'Commerce créé avec succès !',
+      geocodage: latitude && longitude ? 'réussi' : 'coordonnées par défaut (peuvent être modifiées)'
     }, { status: 201 })
   } catch (error) {
     return Response.json(

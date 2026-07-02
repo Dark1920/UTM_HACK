@@ -1,48 +1,49 @@
-import { mockCommentaires } from '@/lib/mock-data';
+import { apiClient } from '@/lib/api-client';
+import { API_ENDPOINTS } from '@/constants/api';
+import { mapAvisFromAPI, mapAvisToAPI } from '@/lib/mappers';
 import type { Commentaire } from '@/types/commentaire';
 
-const commentaires = [...mockCommentaires];
-
 export const commentaireService = {
+  /**
+   * Récupérer les avis d'un commerce
+   */
   async getByCommerceId(commerceId: string): Promise<Commentaire[]> {
-    await new Promise(r => setTimeout(r, 250));
-    return commentaires
-      .filter(c => c.commerceId === commerceId && c.estModer && !c.estSpam)
-      .sort((a, b) => new Date(b.dateCreation).getTime() - new Date(a.dateCreation).getTime());
+    const response = await apiClient.get<{ avis: Record<string, unknown>[] }>(
+      API_ENDPOINTS.AVIS.LIST(commerceId)
+    );
+    return (response.avis || []).map(mapAvisFromAPI);
   },
 
+  /**
+   * Créer un nouvel avis (avec analyse IA automatique)
+   */
   async create(data: {
     texte: string;
     note: number;
     auteurId: string;
     commerceId: string;
   }): Promise<Commentaire> {
-    await new Promise(r => setTimeout(r, 400));
-    const newCommentaire: Commentaire = {
-      id: 'com-' + Date.now(),
-      texte: data.texte,
-      note: data.note,
-      auteurId: data.auteurId,
-      commerceId: data.commerceId,
-      iaScore: Math.random() * 0.5 + 0.5,
-      iaResume: 'Avis client sur le service.',
-      estSpam: false,
-      estModer: true,
-      dateCreation: new Date().toISOString(),
-    };
-    commentaires.push(newCommentaire);
-    return newCommentaire;
+    const raw = await apiClient.post<Record<string, unknown>>(
+      API_ENDPOINTS.AVIS.CREATE,
+      mapAvisToAPI(data)
+    );
+    return mapAvisFromAPI(raw.avis as Record<string, unknown> ?? raw);
   },
 
+  /**
+   * Supprimer un avis
+   */
   async delete(id: string): Promise<void> {
-    await new Promise(r => setTimeout(r, 300));
-    const index = commentaires.findIndex(c => c.id === id);
-    if (index === -1) throw new Error('Commentaire non trouvé');
-    commentaires.splice(index, 1);
+    return apiClient.delete<void>(
+      API_ENDPOINTS.AVIS.DELETE(id)
+    );
   },
 
+  /**
+   * Récupérer tous les avis (admin)
+   */
   async getAll(): Promise<Commentaire[]> {
-    await new Promise(r => setTimeout(r, 300));
-    return [...commentaires];
+    // Nécessite un endpoint admin - à implémenter si besoin
+    return [];
   },
 };

@@ -94,8 +94,16 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { createClient } = await import('@/lib/supabase/server')
-    const supabase = createClient()
+    // Vérifier l'authentification via le header Bearer
+    const { requireAuth } = await import('@/lib/supabase/auth-guard')
+    const auth = await requireAuth(request)
+    if (auth instanceof Response) return auth
+
+    // Utiliser le service role key pour bypasser RLS
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const { createClient: createServiceClient } = await import('@supabase/supabase-js')
+    const supabase = createServiceClient(supabaseUrl!, supabaseKey!)
 
     const body = await request.json()
 
@@ -150,8 +158,16 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { createClient } = await import('@/lib/supabase/server')
-    const supabase = createClient()
+    // Vérifier l'authentification via le header Bearer
+    const { requireAuth } = await import('@/lib/supabase/auth-guard')
+    const auth = await requireAuth(request)
+    if (auth instanceof Response) return auth
+
+    // Utiliser le service role key pour bypasser RLS
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const { createClient: createServiceClient } = await import('@supabase/supabase-js')
+    const supabase = createServiceClient(supabaseUrl!, supabaseKey!)
 
     const { error } = await supabase
       .from('commerces')

@@ -1,15 +1,34 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/stores/auth.store';
-import { mockCommerces, mockCommentaires } from '@/lib/mock-data';
-import { Store, Phone, Eye, Star, Plus, BarChart3, ArrowRight } from 'lucide-react';
+import { commerceService } from '@/services/commerce.service';
+import { commentaireService } from '@/services/commentaire.service';
+import { Store, Phone, Eye, Star, Plus, BarChart3, ArrowRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { ROUTES } from '@/constants/routes';
 import { StatCard } from '@/components/shared/stat-card';
+import type { Commerce } from '@/types/commerce';
+import type { Commentaire } from '@/types/commentaire';
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
-  const userCommerces = mockCommerces.filter((c) => c.artisanId === user?.id).slice(0, 3);
+  const [userCommerces, setUserCommerces] = useState<Commerce[]>([]);
+  const [recentReviews, setRecentReviews] = useState<Commentaire[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    commerceService.getAll({ artisanId: user.id })
+      .then(async (commerces) => {
+        setUserCommerces(commerces);
+        const reviews = await commentaireService.getByCommerceId(commerces[0]?.id || '');
+        setRecentReviews(reviews.slice(0, 5));
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [user?.id]);
+
   const totalVues = userCommerces.reduce((sum, c) => sum + c.nombreVues, 0);
   const totalAppels = userCommerces.reduce((sum, c) => sum + c.nombreAppels, 0);
   const totalClics = userCommerces.reduce((sum, c) => sum + c.nombreClicsWhatsApp, 0);
@@ -30,9 +49,13 @@ export default function DashboardPage() {
     { href: ROUTES.DASHBOARD_PROFIL, icon: Star, label: 'Modifier mon profil' },
   ];
 
-  const recentReviews = mockCommentaires
-    .filter((c) => userCommerces.some((uc) => uc.id === c.commerceId))
-    .slice(0, 5);
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-6 w-6 animate-spin text-stone-400" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

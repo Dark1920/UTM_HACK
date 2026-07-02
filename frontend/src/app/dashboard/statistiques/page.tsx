@@ -1,19 +1,34 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/stores/auth.store';
-import { mockCommerces, mockCommentaires } from '@/lib/mock-data';
-import { Eye, Phone, MessageSquare, Star, BarChart3, Calendar } from 'lucide-react';
+import { commerceService } from '@/services/commerce.service';
+import { commentaireService } from '@/services/commentaire.service';
+import { Eye, Phone, MessageSquare, Star, BarChart3, Calendar, Loader2 } from 'lucide-react';
 import { StatCard } from '@/components/shared/stat-card';
+import type { Commerce } from '@/types/commerce';
+import type { Commentaire } from '@/types/commentaire';
 
 export default function StatistiquesPage() {
   const { user } = useAuthStore();
-  const userCommerces = mockCommerces.filter((c) => c.artisanId === user?.id);
-  const userReviews = mockCommentaires.filter((r) =>
-    userCommerces.some((c) => c.id === r.commerceId)
-  );
-
+  const [userCommerces, setUserCommerces] = useState<Commerce[]>([]);
+  const [userReviews, setUserReviews] = useState<Commentaire[]>([]);
+  const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState('7j');
+
+  useEffect(() => {
+    if (!user?.id) return;
+    commerceService.getAll({ artisanId: user.id })
+      .then(async (commerces) => {
+        setUserCommerces(commerces);
+        if (commerces.length > 0) {
+          const reviews = await commentaireService.getByCommerceId(commerces[0].id);
+          setUserReviews(reviews);
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [user?.id]);
 
   const totalVues = userCommerces.reduce((sum, c) => sum + c.nombreVues, 0);
   const totalAppels = userCommerces.reduce((sum, c) => sum + c.nombreAppels, 0);
@@ -30,6 +45,14 @@ export default function StatistiquesPage() {
     { label: 'Clics WhatsApp', value: totalClics, icon: <MessageSquare className="h-[18px] w-[18px]" />, variant: 'purple' as const, change: '+15%' },
     { label: 'Note moyenne', value: avgNote, icon: <Star className="h-[18px] w-[18px]" />, variant: 'amber' as const, change: '+0.2' },
   ];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-6 w-6 animate-spin text-stone-400" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Heart, Star, MapPin, Trash2 } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
-import { mockCommerces, mockCategories } from '@/lib/mock-data';
+import { CATEGORIES } from '@/constants/categories';
+import { commerceService } from '@/services/commerce.service';
 import { CommercePhoto } from '@/components/commerces/commerce-photo';
 import type { Commerce } from '@/types/commerce';
 
@@ -15,7 +16,7 @@ function FavoriteCard({
   commerce: Commerce;
   onRemove: (id: string) => void;
 }) {
-  const category = mockCategories.find((c) => c.id === commerce.categorieId);
+  const category = CATEGORIES.find((c) => c.id === commerce.categorieId);
   return (
     <div className="rounded-lg border border-stone-200 overflow-hidden group hover:border-stone-400 transition-colors">
       <Link href={ROUTES.COMMERCE(commerce.id)}>
@@ -58,16 +59,16 @@ function FavoriteCard({
 
 export default function FavorisPage() {
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  const [commerces, setCommerces] = useState<Commerce[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem('favorites');
-    if (stored) {
-      setFavoriteIds(JSON.parse(stored));
-    } else {
-      setFavoriteIds(['com-1', 'com-2', 'com-7']);
-    }
-    setLoaded(true);
+    setFavoriteIds(stored ? JSON.parse(stored) : []);
+    commerceService.getAll()
+      .then(setCommerces)
+      .catch(console.error)
+      .finally(() => setLoaded(true));
   }, []);
 
   const removeFavorite = (id: string) => {
@@ -76,7 +77,7 @@ export default function FavorisPage() {
     localStorage.setItem('favorites', JSON.stringify(next));
   };
 
-  const favoriteCommerces = mockCommerces.filter((c) => favoriteIds.includes(c.id));
+  const favoriteCommerces = commerces.filter((c) => favoriteIds.includes(c.id));
 
   if (!loaded) return null;
 

@@ -1,17 +1,25 @@
 'use client';
 
 import { useCallback } from 'react';
-import { useCommerceStore, loadMockCommerces } from '@/stores/commerce.store';
+import { useCommerceStore } from '@/stores/commerce.store';
+import { commerceService } from '@/services/commerce.service';
 import type { Commerce, CreateCommerceData } from '@/types/commerce';
-import { mockCommerces } from '@/lib/mock-data';
 
 export function useCommerce() {
   const commerces = useCommerceStore((s) => s.commerces);
   const selectedCommerce = useCommerceStore((s) => s.selectedCommerce);
   const isLoading = useCommerceStore((s) => s.isLoading);
 
-  const loadCommerces = useCallback(() => {
-    useCommerceStore.getState().setCommerces(mockCommerces);
+  const loadCommerces = useCallback(async () => {
+    useCommerceStore.setState({ isLoading: true });
+    try {
+      const data = await commerceService.getAll();
+      useCommerceStore.getState().setCommerces(data);
+    } catch (error) {
+      console.error('Failed to load commerces:', error);
+    } finally {
+      useCommerceStore.setState({ isLoading: false });
+    }
   }, []);
 
   const selectCommerce = useCallback((commerce: Commerce | null) => {
@@ -20,49 +28,29 @@ export function useCommerce() {
 
   const createCommerce = useCallback(
     async (data: CreateCommerceData): Promise<Commerce> => {
-      const newCommerce: Commerce = {
-        id: `com-${Date.now()}`,
-        ...data,
-        artisanId: 'art-1',
-        photos: [],
-        note: 0,
-        nombreAvis: 0,
-        nombreVues: 0,
-        nombreAppels: 0,
-        nombreClicsWhatsApp: 0,
-        estPublic: true,
-        dateCreation: new Date().toISOString(),
-        dateModification: new Date().toISOString(),
-      };
-      const store = useCommerceStore.getState();
-      store.setCommerces([...store.commerces, newCommerce]);
+      const newCommerce = await commerceService.create(data);
+      await loadCommerces();
       return newCommerce;
     },
-    []
+    [loadCommerces]
   );
 
   const updateCommerce = useCallback(
     async (id: string, data: Partial<CreateCommerceData>): Promise<Commerce> => {
-      const store = useCommerceStore.getState();
-      const existing = store.commerces.find((c) => c.id === id);
-      if (!existing) throw new Error('Commerce not found');
-      const updated: Commerce = {
-        ...existing,
-        ...data,
-        dateModification: new Date().toISOString(),
-      };
-      store.setCommerces(
-        store.commerces.map((c) => (c.id === id ? updated : c))
-      );
+      const updated = await commerceService.update(id, data);
+      await loadCommerces();
       return updated;
     },
-    []
+    [loadCommerces]
   );
 
-  const deleteCommerce = useCallback(async (id: string) => {
-    const store = useCommerceStore.getState();
-    store.setCommerces(store.commerces.filter((c) => c.id !== id));
-  }, []);
+  const deleteCommerce = useCallback(
+    async (id: string) => {
+      await commerceService.delete(id);
+      await loadCommerces();
+    },
+    [loadCommerces]
+  );
 
   return {
     commerces,

@@ -113,25 +113,19 @@ export async function GET(request: Request) {
  */
 export async function POST(request: Request) {
   try {
-    const { createClient } = await import('@/lib/supabase/server')
-    
+    // Vérifier l'authentification via le header Bearer
+    const { requireAuth } = await import('@/lib/supabase/auth-guard')
+    const auth = await requireAuth(request)
+    if (auth instanceof Response) return auth // 401
+
+    const { userId } = auth
+
     // Utiliser le service role key pour bypasser RLS
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     
     const { createClient: createServiceClient } = await import('@supabase/supabase-js')
     const supabase = createServiceClient(supabaseUrl!, supabaseKey!)
-
-    // Récupérer l'utilisateur connecté pour l'associer à l'avis
-    const client = createClient()
-    const { data: { user }, error: authError } = await client.auth.getUser()
-    
-    if (authError || !user) {
-      return Response.json(
-        { error: 'Vous devez être connecté pour créer un avis' },
-        { status: 401 }
-      )
-    }
 
     const body = await request.json()
     const { commerce_id, note, commentaire } = body
@@ -194,7 +188,7 @@ export async function POST(request: Request) {
       .from('avis')
       .insert({
         commerce_id,
-        user_id: user.id,
+        user_id: userId,
         note,
         commentaire,
         sentiment: analyseIA?.sentiment || 'neutre',

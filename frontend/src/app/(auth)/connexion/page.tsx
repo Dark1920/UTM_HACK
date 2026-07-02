@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,7 +18,17 @@ const connexionSchema = z.object({
 type ConnexionFormValues = z.infer<typeof connexionSchema>;
 
 export default function ConnexionPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-stone-400" /></div>}>
+      <ConnexionForm />
+    </Suspense>
+  );
+}
+
+function ConnexionForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect') || null;
   const { login, isLoading } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState('');
@@ -36,9 +46,15 @@ export default function ConnexionPage() {
     try {
       await login(data.email, data.password);
       const user = useAuthStore.getState().user;
-      router.push(user?.role === 'admin' ? ROUTES.ADMIN : ROUTES.DASHBOARD);
-    } catch {
-      setFormError('Identifiants incorrects. Veuillez réessayer.');
+      // If there's a redirect param, go there; otherwise use role-based default
+      if (redirectTo) {
+        router.push(redirectTo);
+      } else {
+        router.push(user?.role === 'admin' ? ROUTES.ADMIN : ROUTES.DASHBOARD);
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Identifiants incorrects. Veuillez réessayer.';
+      setFormError(message);
     }
   };
 

@@ -1,37 +1,56 @@
+import { apiClient } from '@/lib/api-client';
+import { API_ENDPOINTS } from '@/constants/api';
+
 export const groqService = {
-  async analyseSentiment(texte: string): Promise<{ note: number; confiance: number }> {
-    await new Promise(r => setTimeout(r, 600));
+  /**
+   * Analyse de sentiment via IA (Groq)
+   */
+  async analyseSentiment(texte: string): Promise<{ pertinent: boolean; sentiment: string; note: number; confiance: number; motifs: string[] }> {
+    const response = await apiClient.post<{ analyse: any }>(
+      API_ENDPOINTS.IA.ANALYZE,
+      { texte }
+    );
+    return response.analyse;
+  },
+
+  /**
+   * Générer un résumé d'avis via IA
+   */
+  async genererResume(texte: string): Promise<{ resume: string; points_forts: string[]; points_faibles: string[] }> {
+    const response = await apiClient.post<{ resume: any }>(
+      API_ENDPOINTS.IA.SUMMARIZE,
+      { texte }
+    );
+    return response.resume;
+  },
+
+  /**
+   * Détection de spam via IA
+   */
+  async detecterSpam(texte: string): Promise<{ pertinent: boolean; spam: boolean; score: number }> {
+    const response = await apiClient.post<{ analyse: any }>(
+      API_ENDPOINTS.IA.ANALYZE,
+      { texte }
+    );
     return {
-      note: Math.floor(Math.random() * 5) + 1,
-      confiance: Math.random() * 0.4 + 0.6,
+      spam: !response.analyse.pertinent,
+      score: response.analyse.confiance,
+      pertinent: response.analyse.pertinent
     };
   },
 
-  async genererResume(texte: string): Promise<string> {
-    await new Promise(r => setTimeout(r, 700));
-    const resumes = [
-      'Client satisfait du service rendu.',
-      'Travail de qualité effectué dans les délais.',
-      'Recommande vivement cet artisan.',
-      'Bon rapport qualité-prix.',
-      'Intervention rapide et professionnelle.',
-    ];
-    return resumes[Math.floor(Math.random() * resumes.length)];
-  },
-
-  async detecterSpam(texte: string): Promise<{ estSpam: boolean; score: number }> {
-    await new Promise(r => setTimeout(r, 400));
-    return {
-      estSpam: Math.random() < 0.05,
-      score: Math.random() * 0.3,
-    };
-  },
-
+  /**
+   * Réponse automatique à un avis
+   */
   async repondreAvis(avis: string, note: number): Promise<string> {
-    await new Promise(r => setTimeout(r, 500));
-    if (note >= 4) {
-      return 'Merci beaucoup pour votre avis positif ! Nous sommes ravis de vous avoir satisfait.';
-    }
-    return 'Merci pour votre retour. Nous prenons note de vos remarques pour nous améliorer.';
+    // Utiliser l'IA pour générer une réponse contextuelle
+    const prompt = `Génère une réponse professionnelle à cet avis client (${note}/5 étoiles) : "${avis}"`;
+    
+    const response = await apiClient.post<{ resume: any }>(
+      API_ENDPOINTS.IA.SUMMARIZE,
+      { texte: prompt }
+    );
+    
+    return response.resume.resume || 'Merci pour votre avis.';
   },
 };

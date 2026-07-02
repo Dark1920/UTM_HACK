@@ -1,16 +1,24 @@
 "use client";
 
-import { useState } from "react";
-import { Search, Trash2, CheckCircle, XCircle, Store } from "lucide-react";
-import { mockCommerces } from "@/lib/mock-data";
+import { useState, useEffect } from "react";
+import { Search, Trash2, CheckCircle, XCircle, Store, Loader2 } from "lucide-react";
+import { adminService } from "@/services/admin.service";
+import { CATEGORIES } from "@/constants/categories";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-
-const commerces = mockCommerces;
+import type { Commerce } from "@/types/commerce";
 
 export default function AdminCommercesPage() {
   const [search, setSearch] = useState("");
-  const [items, setItems] = useState(commerces);
+  const [items, setItems] = useState<Commerce[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    adminService.getCommerces()
+      .then((res) => setItems(res.commerces))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
 
   const filtered = items.filter(
     (c) =>
@@ -18,14 +26,27 @@ export default function AdminCommercesPage() {
       c.ville.toLowerCase().includes(search.toLowerCase())
   );
 
-  const toggleStatus = (id: string) => {
-    setItems((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, estPublic: !c.estPublic } : c))
-    );
+  const toggleStatus = async (id: string) => {
+    const commerce = items.find((c) => c.id === id);
+    if (!commerce) return;
+    const newStatut = commerce.estPublic ? "brouillon" : "publie";
+    try {
+      await adminService.updateCommerceStatut(id, newStatut);
+      setItems((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, estPublic: !c.estPublic } : c))
+      );
+    } catch (error) {
+      console.error("Failed to toggle commerce:", error);
+    }
   };
 
-  const remove = (id: string) => {
-    setItems((prev) => prev.filter((c) => c.id !== id));
+  const remove = async (id: string) => {
+    try {
+      await adminService.deleteCommerce(id);
+      setItems((prev) => prev.filter((c) => c.id !== id));
+    } catch (error) {
+      console.error("Failed to delete commerce:", error);
+    }
   };
 
   return (
@@ -48,6 +69,12 @@ export default function AdminCommercesPage() {
         />
       </div>
 
+      {loading ? (
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="h-6 w-6 animate-spin text-stone-400" />
+        </div>
+      ) : (
+      <>
       <div className="hidden md:block rounded-lg border border-stone-200 bg-white overflow-hidden shadow-sm">
         <table className="w-full text-sm">
           <thead className="bg-stone-50/50 border-b border-stone-100">
@@ -66,7 +93,7 @@ export default function AdminCommercesPage() {
                 <td className="px-5 py-4 font-semibold text-stone-900">{c.nom}</td>
                 <td className="px-5 py-4 text-stone-600">{c.ville}</td>
                 <td className="px-5 py-4">
-                  <Badge variant="warm">{c.categorieId}</Badge>
+                  <Badge variant="warm">{CATEGORIES.find((cat) => cat.id === c.categorieId)?.nom ?? c.categorieId}</Badge>
                 </td>
                 <td className="px-5 py-4">
                   <Badge variant={c.estPublic ? "success" : "warning"}>
@@ -123,6 +150,8 @@ export default function AdminCommercesPage() {
           </div>
           <p className="text-stone-500 font-medium">Aucun commerce trouvé</p>
         </div>
+      )}
+      </>
       )}
     </div>
   );
