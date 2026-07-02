@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
@@ -82,7 +83,7 @@ export default function Sidebar({ role, user, onLogout }: SidebarProps) {
         {user && (
           <div className={`flex items-center gap-2.5 ${collapsed ? 'justify-center' : ''}`}>
             {user.avatar ? (
-              <img src={user.avatar} alt={user.prenom} className="h-9 w-9 rounded-md object-cover flex-shrink-0" />
+              <Image src={user.avatar} alt={user.prenom} width={36} height={36} className="h-9 w-9 rounded-md object-cover flex-shrink-0" unoptimized />
             ) : (
               <div className="h-9 w-9 rounded-md bg-stone-900 flex items-center justify-center flex-shrink-0">
                 <span className="text-xs font-semibold text-white">

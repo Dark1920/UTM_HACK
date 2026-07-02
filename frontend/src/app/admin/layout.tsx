@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Menu, X } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 import { ROUTES } from '@/constants/routes';
@@ -45,7 +46,7 @@ export default function AdminLayout({
           {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
         <div className="flex items-center gap-2">
-          <img src="/logo_zoom.png" alt="ArtisanBF" className="h-9 w-9 object-contain" />
+          <Image src="/logo_zoom.png" alt="ArtisanBF" width={36} height={36} className="h-9 w-9 object-contain" />
           <span className="ml-1 px-2 py-0.5 bg-error-50 text-error-700 text-xs font-medium rounded-md border border-error-200">
             Admin
           </span>

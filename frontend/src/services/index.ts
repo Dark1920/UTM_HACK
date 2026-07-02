@@ -10,7 +10,6 @@ export { rechercheService } from './recherche.service';
 export type { RechercheParams, CommerceProche } from './recherche.service';
 export { groqService } from './groq.service';
 export { whatsappService } from './whatsapp.service';
-export { favorisService } from './favoris.service';
 export { adminService } from './admin.service';
 export type { AdminStats } from './admin.service';
 export { statistiquesService } from './statistiques.service';

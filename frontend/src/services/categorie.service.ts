@@ -1,4 +1,5 @@
 import type { Categorie } from '@/types/commerce';
+import { apiFetch } from '@/lib/api-client';
 
 const API = '/api/categories';
 
@@ -15,9 +16,7 @@ function mapCategorie(row: Record<string, unknown>): Categorie {
 
 export const categorieService = {
   async getAll(): Promise<Categorie[]> {
-    const res = await fetch(API);
-    if (!res.ok) throw new Error('Erreur chargement catégories');
-    const data = await res.json();
+    const data = await apiFetch<unknown>(API);
     return (Array.isArray(data) ? data : []).map(mapCategorie);
   },
 

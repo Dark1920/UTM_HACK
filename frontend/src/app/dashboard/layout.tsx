@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Menu, X } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 import { ROUTES } from '@/constants/routes';
@@ -45,7 +46,7 @@ export default function DashboardLayout({
           {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
         <div className="flex items-center">
-          <img src="/logo_zoom.png" alt="ArtisanBF" className="h-9 w-9 object-contain" />
+          <Image src="/logo_zoom.png" alt="ArtisanBF" width={36} height={36} className="h-9 w-9 object-contain" />
         </div>
         <div className="ml-auto flex items-center gap-2.5">
           <div className="h-8 w-8 rounded-md bg-stone-900 flex items-center justify-center">

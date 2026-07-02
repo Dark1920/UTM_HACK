@@ -1,8 +1,14 @@
 // Page Swagger UI pour documenter et tester l'API
 'use client'
 
-import SwaggerUI from 'swagger-ui-react'
+import type { ComponentType } from 'react'
+import SwaggerUIRaw from 'swagger-ui-react'
 import 'swagger-ui-react/swagger-ui.css'
+
+// swagger-ui-react est typé pour React 18 ; dans ce monorepo, @types/react (v19)
+// est hoisté à la racine et rend son type FunctionComponent invalide en JSX.
+// On le re-caste en composant acceptant des props libres pour débloquer le build.
+const SwaggerUI = SwaggerUIRaw as unknown as ComponentType<Record<string, unknown>>
 
 // Configuration Swagger inline (même contenu que lib/swagger.js)
 const swaggerSpec = {

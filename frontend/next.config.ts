@@ -5,6 +5,12 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname, '..'),
   },
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: 'images.pexels.com' },
+      { protocol: 'https', hostname: 'placehold.co' },
+    ],
+  },
   async rewrites() {
     const backend = process.env.BACKEND_URL || 'http://localhost:3001';
     return [

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { Commerce } from '@/types/commerce';
 import type { FiltreRecherche } from '@/types/common';
 import { commerceService } from '@/services/commerce.service';
+import { filterCommerces, sortCommerces } from '@/utils/filter-commerces';
 
 interface CommerceState {
   commerces: Commerce[];
@@ -41,45 +42,12 @@ export const useCommerceStore = create<CommerceState>((set, get) => ({
 
   filteredCommerces: () => {
     const { commerces, filters } = get();
-    let result = [...commerces];
-
-    if (filters.recherche) {
-      const q = filters.recherche.toLowerCase();
-      result = result.filter(
-        (c) =>
-          c.nom.toLowerCase().includes(q) ||
-          c.description.toLowerCase().includes(q)
-      );
-    }
-    if (filters.categorieId) {
-      result = result.filter((c) => c.categorieId === filters.categorieId);
-    }
-    if (filters.ville) {
-      result = result.filter(
-        (c) => c.ville.toLowerCase() === filters.ville!.toLowerCase()
-      );
-    }
-    if (filters.noteMin) {
-      result = result.filter((c) => c.note >= filters.noteMin!);
-    }
-
-    switch (filters.tri) {
-      case 'note':
-        result.sort((a, b) => b.note - a.note);
-        break;
-      case 'date':
-        result.sort(
-          (a, b) =>
-            new Date(b.dateCreation).getTime() -
-            new Date(a.dateCreation).getTime()
-        );
-        break;
-      case 'distance':
-        break;
-      default:
-        break;
-    }
-
-    return result;
+    const filtered = filterCommerces(commerces, {
+      recherche: filters.recherche,
+      categorieId: filters.categorieId,
+      ville: filters.ville,
+      noteMin: filters.noteMin,
+    });
+    return sortCommerces(filtered, filters.tri);
   },
 }));

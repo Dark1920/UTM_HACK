@@ -1,15 +1,17 @@
 "use client";
 
-import { useState, type ImgHTMLAttributes } from "react";
+import { useState } from "react";
+import Image from "next/image";
 
 type AvatarSize = "sm" | "md" | "lg";
 
-interface AvatarProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "size" | "src"> {
+interface AvatarProps {
   src?: string | null;
   alt: string;
   name?: string;
   size?: AvatarSize;
   online?: boolean;
+  className?: string;
 }
 
 const sizeStyles: Record<AvatarSize, string> = {
@@ -17,6 +19,8 @@ const sizeStyles: Record<AvatarSize, string> = {
   md: "h-10 w-10 text-sm",
   lg: "h-14 w-14 text-lg",
 };
+
+const sizePx: Record<AvatarSize, number> = { sm: 32, md: 40, lg: 56 };
 
 const onlineSizeStyles: Record<AvatarSize, string> = {
   sm: "h-2.5 w-2.5 border",
@@ -41,8 +45,6 @@ function Avatar({
   size = "md",
   online,
   className = "",
-  onError,
-  ...props
 }: AvatarProps) {
   const [imgError, setImgError] = useState(false);
 
@@ -51,15 +53,14 @@ function Avatar({
   return (
     <div className={["relative inline-flex shrink-0", className].join(" ")}>
       {showImage ? (
-        <img
+        <Image
           src={src}
           alt={alt}
+          width={sizePx[size]}
+          height={sizePx[size]}
           className={["rounded-md object-cover", sizeStyles[size]].join(" ")}
-          onError={(e) => {
-            setImgError(true);
-            onError?.(e);
-          }}
-          {...props}
+          onError={() => setImgError(true)}
+          unoptimized
         />
       ) : (
         <div

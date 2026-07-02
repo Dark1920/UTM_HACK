@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { AlertTriangle, Phone, MessageCircle, Locate, Loader2 } from 'lucide-react';
 import { rechercheService, geolocationService } from '@/services';
 import type { CommerceProche } from '@/services/recherche.service';
@@ -54,6 +55,8 @@ export default function UrgencePage() {
   }, []);
 
   useEffect(() => {
+    // Demande la position au montage (met à jour l'état de géoloc) : volontaire.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     requestLocation();
   }, [requestLocation]);
 
@@ -66,6 +69,8 @@ export default function UrgencePage() {
   useEffect(() => {
     if (!userLocated) return;
     let annule = false;
+    // Reset du chargement à chaque nouvelle recherche (position/catégorie) : volontaire.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoadingResults(true);
     rechercheService
       .rechercher({
@@ -209,10 +214,13 @@ export default function UrgencePage() {
                       className="rounded-lg border border-stone-200 p-4 hover:border-stone-400 transition-colors"
                     >
                       <div className="flex items-start gap-3.5">
-                        <img
+                        <Image
                           src={commerce.photos[0] || 'https://placehold.co/56x56/e7e5e4/78716c?text=%20'}
                           alt={commerce.nom}
+                          width={56}
+                          height={56}
                           className="w-14 h-14 rounded-md object-cover shrink-0"
+                          unoptimized
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">

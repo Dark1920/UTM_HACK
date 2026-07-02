@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Heart, Menu, X, User, LogOut, ChevronDown, AlertTriangle } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
 
@@ -30,7 +31,7 @@ export default function Header({ user, onLogout }: HeaderProps) {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href={ROUTES.HOME} className="flex items-center">
-            <img src="/logo_zoom.png" alt="ArtisanBF" className="h-10 w-10 object-contain" />
+            <Image src="/logo_zoom.png" alt="ArtisanBF" width={40} height={40} className="h-10 w-10 object-contain" />
           </Link>
 
           <nav className="hidden md:flex items-center gap-7">
@@ -63,7 +64,7 @@ export default function Header({ user, onLogout }: HeaderProps) {
                   className="flex items-center gap-2 rounded-md py-1 pl-1 pr-2 hover:bg-stone-100 transition-colors"
                 >
                   {user.avatar ? (
-                    <img src={user.avatar} alt={user.prenom} className="h-7 w-7 rounded-md object-cover" />
+                    <Image src={user.avatar} alt={user.prenom} width={28} height={28} className="h-7 w-7 rounded-md object-cover" unoptimized />
                   ) : (
                     <div className="h-7 w-7 rounded-md bg-stone-900 flex items-center justify-center">
                       <span className="text-xs font-semibold text-white">

@@ -1,4 +1,5 @@
 import type { Commerce, CreateCommerceData } from '@/types/commerce';
+import { apiFetch } from '@/lib/api-client';
 
 const API = '/api/commerces';
 
@@ -56,60 +57,45 @@ export interface CommerceFilters {
 
 export const commerceService = {
   async getAll(filters?: CommerceFilters): Promise<Commerce[]> {
-    const params = new URLSearchParams();
-    if (filters?.categorieId) params.set('categorie', filters.categorieId);
-    if (filters?.search) params.set('search', filters.search);
-    if (filters?.artisanId) params.set('artisanId', filters.artisanId);
-
-    const qs = params.toString();
-    const res = await fetch(`${API}${qs ? '?' + qs : ''}`);
-    if (!res.ok) throw new Error('Erreur chargement commerces');
-    const data = await res.json();
+    const data = await apiFetch<{ commerces?: Record<string, unknown>[] }>(API, {
+      query: {
+        categorie: filters?.categorieId,
+        search: filters?.search,
+        artisanId: filters?.artisanId,
+      },
+    });
     return (data.commerces || []).map(mapCommerce);
   },
 
   async getById(id: string): Promise<Commerce | undefined> {
-    const res = await fetch(`${API}/${id}`);
-    if (!res.ok) return undefined;
-    const data = await res.json();
-    return mapCommerce(data);
+    try {
+      const data = await apiFetch<Record<string, unknown>>(`${API}/${id}`);
+      return mapCommerce(data);
+    } catch {
+      return undefined;
+    }
   },
 
   async create(data: CreateCommerceData, artisanId: string): Promise<Commerce> {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('supabase_token') : null;
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-
-    const res = await fetch(API, {
+    const row = await apiFetch<Record<string, unknown>>(API, {
       method: 'POST',
-      headers,
-      body: JSON.stringify(data),
+      auth: true,
+      body: data,
     });
-    if (!res.ok) throw new Error('Erreur création commerce');
-    return mapCommerce(await res.json());
+    return mapCommerce(row);
   },
 
   async update(id: string, data: Partial<CreateCommerceData>): Promise<Commerce> {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('supabase_token') : null;
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-
-    const res = await fetch(`${API}/${id}`, {
+    const row = await apiFetch<Record<string, unknown>>(`${API}/${id}`, {
       method: 'PUT',
-      headers,
-      body: JSON.stringify(data),
+      auth: true,
+      body: data,
     });
-    if (!res.ok) throw new Error('Erreur mise à jour commerce');
-    return mapCommerce(await res.json());
+    return mapCommerce(row);
   },
 
   async delete(id: string): Promise<void> {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('supabase_token') : null;
-    const headers: Record<string, string> = {};
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-
-    const res = await fetch(`${API}/${id}`, { method: 'DELETE', headers });
-    if (!res.ok) throw new Error('Erreur suppression commerce');
+    await apiFetch<void>(`${API}/${id}`, { method: 'DELETE', auth: true });
   },
 
   async incrementView(id: string): Promise<void> {

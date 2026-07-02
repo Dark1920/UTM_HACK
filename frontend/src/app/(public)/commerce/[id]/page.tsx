@@ -1,24 +1,43 @@
 'use client';
 
-import { useState, use } from 'react';
+import { useState, use, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { Star, MapPin, Phone, MessageCircle, Heart, ArrowLeft, Send, Share2 } from 'lucide-react';
+import Image from 'next/image';
+import { Star, MapPin, Phone, MessageCircle, Heart, ArrowLeft, Send, Share2, Loader2 } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
-import { getCommerceById, mockCommerces, mockCategories, mockCommentaires, mockCitoyens } from '@/lib/mock-data';
 import { usePexelsPhotos } from '@/hooks/usePexelsPhotos';
 import { CATEGORY_PEXELS_QUERY } from '@/constants/pexels';
 import { CommercePhoto } from '@/components/commerces/commerce-photo';
 import MapLeaflet from '@/components/maps/map-leaflet';
+import { commerceService } from '@/services/commerce.service';
+import { commentaireService } from '@/services/commentaire.service';
+import { useAuthStore } from '@/stores/auth.store';
+import { useFavorites } from '@/hooks/useFavorites';
+import { useToast } from '@/components/ui/toast';
+import type { Commerce } from '@/types/commerce';
+import type { Commentaire } from '@/types/commentaire';
 
 function PhotoGallery({ photos: fallbackPhotos, name, categorieId }: { photos: string[]; name: string; categorieId: string }) {
   const [selected, setSelected] = useState(0);
   const { photos: pexelsPhotos } = usePexelsPhotos(CATEGORY_PEXELS_QUERY[categorieId] ?? null, 4);
   const photos = pexelsPhotos.length > 0 ? pexelsPhotos : fallbackPhotos;
 
+  if (photos.length === 0) {
+    return <div className="h-64 sm:h-80 lg:h-96 bg-stone-100 rounded-lg" />;
+  }
+
   return (
     <div className="space-y-2.5">
       <div className="relative h-64 sm:h-80 lg:h-96 bg-stone-100 rounded-lg overflow-hidden">
-        <img src={photos[selected] ?? photos[0]} alt={name} className="w-full h-full object-cover" />
+        <Image
+          src={photos[selected] ?? photos[0]}
+          alt={name}
+          fill
+          priority
+          sizes="(max-width: 1024px) 100vw, 66vw"
+          className="object-cover"
+          unoptimized
+        />
       </div>
       {photos.length > 1 && (
         <div className="flex gap-2">
@@ -26,11 +45,11 @@ function PhotoGallery({ photos: fallbackPhotos, name, categorieId }: { photos: s
             <button
               key={i}
               onClick={() => setSelected(i)}
-              className={`h-16 w-24 rounded-md overflow-hidden border-2 transition-colors ${
+              className={`relative h-16 w-24 rounded-md overflow-hidden border-2 transition-colors ${
                 selected === i ? 'border-stone-900' : 'border-transparent'
               }`}
             >
-              <img src={photo} alt="" className="w-full h-full object-cover" />
+              <Image src={photo} alt="" fill sizes="96px" className="object-cover" unoptimized />
             </button>
           ))}
         </div>
@@ -41,13 +60,94 @@ function PhotoGallery({ photos: fallbackPhotos, name, categorieId }: { photos: s
 
 export default function CommerceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const commerce = getCommerceById(id);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const user = useAuthStore((s) => s.user);
+  const { toggleFavori, isFavori } = useFavorites();
+  const { toast: notify } = useToast();
+
+  const [commerce, setCommerce] = useState<Commerce | null>(null);
+  const [reviews, setReviews] = useState<Commentaire[]>([]);
+  const [related, setRelated] = useState<Commerce[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+
+  const isFavorite = isFavori(id);
   const [reviewText, setReviewText] = useState('');
   const [reviewRating, setReviewRating] = useState(0);
-  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  if (!commerce) {
+  useEffect(() => {
+    let annule = false;
+    // Reset de l'état de chargement quand l'id de route change : volontaire.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    (async () => {
+      const c = await commerceService.getById(id);
+      if (annule) return;
+      if (!c) {
+        setNotFound(true);
+        setLoading(false);
+        return;
+      }
+      setCommerce(c);
+      setLoading(false);
+
+      // Avis + commerces similaires (non bloquants)
+      commentaireService.getByCommerceId(id).then((r) => !annule && setReviews(r)).catch(() => {});
+      if (c.categorieId) {
+        commerceService
+          .getAll({ categorieId: c.categorieId })
+          .then((list) => !annule && setRelated(list.filter((x) => x.id !== c.id).slice(0, 3)))
+          .catch(() => {});
+      }
+    })().catch(() => {
+      if (!annule) {
+        setNotFound(true);
+        setLoading(false);
+      }
+    });
+    return () => {
+      annule = true;
+    };
+  }, [id]);
+
+  const handleSubmitReview = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!reviewText.trim() || reviewRating === 0) return;
+      if (!user) {
+        notify('error', 'Connectez-vous pour laisser un avis.');
+        return;
+      }
+      setSubmitting(true);
+      try {
+        const created = await commentaireService.create({
+          texte: reviewText.trim(),
+          note: reviewRating,
+          auteurId: user.id,
+          commerceId: id,
+        });
+        setReviews((prev) => [created, ...prev]);
+        setReviewText('');
+        setReviewRating(0);
+        notify('success', 'Merci ! Votre avis a été publié.');
+      } catch (err) {
+        notify('error', err instanceof Error ? err.message : 'Erreur lors de la publication.');
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [reviewText, reviewRating, user, id, notify]
+  );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-stone-400" />
+      </div>
+    );
+  }
+
+  if (notFound || !commerce) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -61,20 +161,7 @@ export default function CommerceDetailPage({ params }: { params: Promise<{ id: s
     );
   }
 
-  const category = mockCategories.find((c) => c.id === commerce.categorieId);
-  const commerceReviews = mockCommentaires.filter((c) => c.commerceId === commerce.id);
-  const related = mockCommerces
-    .filter((c) => c.categorieId === commerce.categorieId && c.id !== commerce.id)
-    .slice(0, 3);
-
-  const handleSubmitReview = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (reviewText.trim() && reviewRating > 0) {
-      setSubmitted(true);
-      setReviewText('');
-      setReviewRating(0);
-    }
-  };
+  const categoryNom = commerce.categorie?.nom;
 
   return (
     <div className="min-h-screen pb-24 lg:pb-8">
@@ -100,7 +187,7 @@ export default function CommerceDetailPage({ params }: { params: Promise<{ id: s
               <div className="flex items-start justify-between mb-4 gap-3">
                 <div>
                   <span className="text-xs font-medium uppercase tracking-wide text-stone-400">
-                    {category?.nom}
+                    {categoryNom}
                   </span>
                   <h1 className="text-2xl sm:text-3xl font-semibold text-stone-900 mt-1.5 tracking-tight">
                     {commerce.nom}
@@ -108,7 +195,8 @@ export default function CommerceDetailPage({ params }: { params: Promise<{ id: s
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <button
-                    onClick={() => setIsFavorite(!isFavorite)}
+                    onClick={() => toggleFavori(id)}
+                    aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
                     className={`p-2 rounded-md border transition-colors ${
                       isFavorite
                         ? 'bg-error-50 border-error-200 text-error-500'
@@ -117,7 +205,7 @@ export default function CommerceDetailPage({ params }: { params: Promise<{ id: s
                   >
                     <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
                   </button>
-                  <button className="p-2 rounded-md border border-stone-300 text-stone-400 hover:text-stone-900 transition-colors">
+                  <button aria-label="Partager" className="p-2 rounded-md border border-stone-300 text-stone-400 hover:text-stone-900 transition-colors">
                     <Share2 className="h-4 w-4" />
                   </button>
                 </div>
@@ -151,74 +239,68 @@ export default function CommerceDetailPage({ params }: { params: Promise<{ id: s
               <p className="text-stone-600 leading-relaxed">{commerce.description}</p>
             </div>
 
-            <div className="rounded-lg border border-stone-200 overflow-hidden">
-              <MapLeaflet
-                className="h-64 w-full"
-                center={[commerce.latitude, commerce.longitude]}
-                zoom={15}
-                markers={[{ id: commerce.id, position: [commerce.latitude, commerce.longitude], popup: commerce.nom }]}
-              />
-            </div>
+            {commerce.latitude != null && commerce.longitude != null && (
+              <div className="rounded-lg border border-stone-200 overflow-hidden">
+                <MapLeaflet
+                  className="h-64 w-full"
+                  center={[commerce.latitude, commerce.longitude]}
+                  zoom={15}
+                  markers={[{ id: commerce.id, position: [commerce.latitude, commerce.longitude], popup: commerce.nom }]}
+                />
+              </div>
+            )}
 
             <div className="rounded-lg border border-stone-200 p-6">
-              <h2 className="font-semibold text-stone-900 mb-4">Avis ({commerceReviews.length})</h2>
+              <h2 className="font-semibold text-stone-900 mb-4">Avis ({reviews.length})</h2>
 
-              {submitted ? (
-                <div className="bg-success-50 border border-success-200 rounded-md p-3.5 mb-6">
-                  <p className="text-success-700 text-sm font-medium">Merci ! Votre avis a été soumis.</p>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmitReview} className="mb-6 border border-stone-200 rounded-md p-4">
-                  <div className="mb-3">
-                    <label className="block text-sm font-medium text-stone-800 mb-1.5">Votre note</label>
-                    <div className="flex gap-0.5">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button key={star} type="button" onClick={() => setReviewRating(star)} className="p-0.5">
-                          <Star
-                            className={`h-5 w-5 ${
-                              star <= reviewRating ? 'fill-primary-600 text-primary-600' : 'fill-transparent text-stone-300'
-                            }`}
-                          />
-                        </button>
-                      ))}
-                    </div>
+              <form onSubmit={handleSubmitReview} className="mb-6 border border-stone-200 rounded-md p-4">
+                <div className="mb-3">
+                  <label className="block text-sm font-medium text-stone-800 mb-1.5">Votre note</label>
+                  <div className="flex gap-0.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button key={star} type="button" onClick={() => setReviewRating(star)} className="p-0.5" aria-label={`${star} étoile${star > 1 ? 's' : ''}`}>
+                        <Star
+                          className={`h-5 w-5 ${
+                            star <= reviewRating ? 'fill-primary-600 text-primary-600' : 'fill-transparent text-stone-300'
+                          }`}
+                        />
+                      </button>
+                    ))}
                   </div>
-                  <textarea
-                    value={reviewText}
-                    onChange={(e) => setReviewText(e.target.value)}
-                    placeholder="Partagez votre expérience..."
-                    rows={3}
-                    className="w-full px-3 py-2 border border-stone-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-stone-900 focus:border-stone-900 resize-none"
-                  />
-                  <button
-                    type="submit"
-                    disabled={!reviewText.trim() || reviewRating === 0}
-                    className="mt-2.5 inline-flex items-center gap-2 h-9 px-4 bg-stone-900 text-white text-sm font-medium rounded-md hover:bg-stone-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <Send className="h-3.5 w-3.5" />
-                    Envoyer
-                  </button>
-                </form>
-              )}
+                </div>
+                <textarea
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                  placeholder="Partagez votre expérience..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-stone-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-stone-900 focus:border-stone-900 resize-none"
+                />
+                <button
+                  type="submit"
+                  disabled={!reviewText.trim() || reviewRating === 0 || submitting}
+                  className="mt-2.5 inline-flex items-center gap-2 h-9 px-4 bg-stone-900 text-white text-sm font-medium rounded-md hover:bg-stone-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                  Envoyer
+                </button>
+              </form>
 
               <div className="space-y-4">
-                {commerceReviews.length === 0 ? (
+                {reviews.length === 0 ? (
                   <p className="text-stone-400 text-sm text-center py-8">Aucun avis pour le moment.</p>
                 ) : (
-                  commerceReviews.map((review) => {
-                    const author = mockCitoyens.find((c) => c.id === review.auteurId);
+                  reviews.map((review) => {
+                    const nom = review.auteur?.nom || 'Anonyme';
                     return (
                       <div key={review.id} className="border-b border-stone-200 last:border-0 pb-4 last:pb-0">
                         <div className="flex items-center gap-3 mb-2">
                           <div className="w-8 h-8 rounded-md bg-stone-900 flex items-center justify-center">
                             <span className="text-xs font-medium text-white">
-                              {author?.prenom?.[0]}{author?.nom?.[0]}
+                              {nom.slice(0, 2).toUpperCase()}
                             </span>
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-stone-900">
-                              {author?.prenom} {author?.nom}
-                            </p>
+                            <p className="text-sm font-medium text-stone-900">{nom}</p>
                             <div className="flex items-center gap-1">
                               {Array.from({ length: 5 }, (_, i) => (
                                 <Star

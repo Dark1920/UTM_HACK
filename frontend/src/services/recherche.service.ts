@@ -1,5 +1,6 @@
 import type { Commerce } from '@/types/commerce';
 import { mapCommerce } from './commerce.service';
+import { apiFetch } from '@/lib/api-client';
 
 const API = '/api/recherche';
 
@@ -21,16 +22,15 @@ export const rechercheService = {
    * Si latitude/longitude sont fournis, le backend filtre par rayon et trie par distance.
    */
   async rechercher(params: RechercheParams): Promise<CommerceProche[]> {
-    const qs = new URLSearchParams();
-    if (params.q) qs.set('q', params.q);
-    if (params.categorieId) qs.set('categorie', params.categorieId);
-    if (params.latitude != null) qs.set('latitude', String(params.latitude));
-    if (params.longitude != null) qs.set('longitude', String(params.longitude));
-    if (params.rayon != null) qs.set('rayon', String(params.rayon));
-
-    const res = await fetch(`${API}?${qs.toString()}`);
-    if (!res.ok) throw new Error('Erreur recherche');
-    const data = await res.json();
+    const data = await apiFetch<{ commerces?: Record<string, unknown>[] }>(API, {
+      query: {
+        q: params.q,
+        categorie: params.categorieId,
+        latitude: params.latitude,
+        longitude: params.longitude,
+        rayon: params.rayon,
+      },
+    });
 
     return (data.commerces || []).map((row: Record<string, unknown>) => {
       const commerce = mapCommerce(row) as CommerceProche;

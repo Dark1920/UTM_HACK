@@ -1,3 +1,5 @@
+import { apiFetch } from '@/lib/api-client';
+
 export interface VoiceSearchResult {
   texte: string;
   intention: 'recherche' | 'commentaire' | 'incomprehensible';
@@ -6,31 +8,25 @@ export interface VoiceSearchResult {
   urgence: boolean;
 }
 
+function audioForm(audioFile: File): FormData {
+  const formData = new FormData();
+  formData.append('audio', audioFile);
+  return formData;
+}
+
 export const voiceSearchService = {
   async search(audioFile: File): Promise<VoiceSearchResult> {
-    const formData = new FormData();
-    formData.append('audio', audioFile);
-
-    const res = await fetch('/api/ai/voice-search', {
+    return apiFetch<VoiceSearchResult>('/api/ai/voice-search', {
       method: 'POST',
-      body: formData,
+      body: audioForm(audioFile),
     });
-
-    if (!res.ok) throw new Error('Erreur recherche vocale');
-    return res.json();
   },
 
   async transcribe(audioFile: File): Promise<string> {
-    const formData = new FormData();
-    formData.append('audio', audioFile);
-
-    const res = await fetch('/api/ai/speech-to-text', {
+    const data = await apiFetch<{ text: string }>('/api/ai/speech-to-text', {
       method: 'POST',
-      body: formData,
+      body: audioForm(audioFile),
     });
-
-    if (!res.ok) throw new Error('Erreur transcription');
-    const data = await res.json();
     return data.text;
   },
 };

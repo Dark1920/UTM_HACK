@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { ROUTES } from '@/constants/routes';
 
 const columns = [
@@ -27,7 +28,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr_1fr] gap-10">
           <div>
             <Link href={ROUTES.HOME} className="inline-flex items-center bg-white rounded-md p-1.5 mb-4">
-              <img src="/logo_zoom.png" alt="ArtisanBF" className="h-8 w-8 object-contain" />
+              <Image src="/logo_zoom.png" alt="ArtisanBF" width={32} height={32} className="h-8 w-8 object-contain" />
             </Link>
             <p className="text-sm leading-relaxed max-w-xs">
               L&apos;annuaire géolocalisé des artisans du Burkina Faso. Trouvez le bon

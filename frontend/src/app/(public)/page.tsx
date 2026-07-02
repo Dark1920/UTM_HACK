@@ -2,6 +2,7 @@
 
 import { useState, useEffect, type FormEvent } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Search, ArrowRight, ArrowUpRight, Star, MapPin, Phone } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
@@ -97,10 +98,13 @@ export default function HomePage() {
     <div className="flex flex-col">
       {/* Hero */}
       <section className="relative border-b border-stone-200 overflow-hidden">
-        <img
+        <Image
           src="/hero.jpg"
           alt=""
-          className="absolute inset-0 h-full w-full object-cover"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
           aria-hidden="true"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-stone-950/85 via-stone-950/70 to-stone-950/50" />

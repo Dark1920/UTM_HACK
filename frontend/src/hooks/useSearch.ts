@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from 'react';
 import { useSearchStore } from '@/stores/search.store';
 import { useCommerceStore } from '@/stores/commerce.store';
-import { commerceService } from '@/services/commerce.service';
+import { filterCommerces, sortCommerces } from '@/utils/filter-commerces';
 import type { Commerce } from '@/types/commerce';
 
 export function useSearch() {
@@ -30,43 +30,13 @@ export function useSearch() {
   }, [commerces.length]);
 
   const results: Commerce[] = useMemo(() => {
-    let result = [...commerces];
-
-    if (query) {
-      const q = query.toLowerCase();
-      result = result.filter(
-        (c) =>
-          c.nom.toLowerCase().includes(q) ||
-          c.description.toLowerCase().includes(q) ||
-          c.ville.toLowerCase().includes(q)
-      );
-    }
-    if (categorieId) {
-      result = result.filter((c) => c.categorieId === categorieId);
-    }
-    if (ville) {
-      result = result.filter(
-        (c) => c.ville.toLowerCase() === ville.toLowerCase()
-      );
-    }
-    if (noteMin) {
-      result = result.filter((c) => c.note >= noteMin);
-    }
-
-    switch (tri) {
-      case 'note':
-        result.sort((a, b) => b.note - a.note);
-        break;
-      case 'date':
-        result.sort(
-          (a, b) =>
-            new Date(b.dateCreation).getTime() -
-            new Date(a.dateCreation).getTime()
-        );
-        break;
-    }
-
-    return result;
+    const filtered = filterCommerces(commerces, {
+      recherche: query,
+      categorieId,
+      ville,
+      noteMin: noteMin ?? undefined,
+    });
+    return sortCommerces(filtered, tri);
   }, [commerces, query, categorieId, ville, noteMin, tri]);
 
   return {

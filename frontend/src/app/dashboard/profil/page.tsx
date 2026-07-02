@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useAuthStore } from '@/stores/auth.store';
 import { Camera, Lock, Trash2, Save } from 'lucide-react';
 
@@ -45,7 +46,7 @@ export default function ProfilPage() {
         <div className="flex items-center gap-4 mb-6">
           <div className="relative">
             {user?.avatar ? (
-              <img src={user.avatar} alt={user.prenom} className="h-16 w-16 rounded-md object-cover" />
+              <Image src={user.avatar} alt={user.prenom} width={64} height={64} className="h-16 w-16 rounded-md object-cover" unoptimized />
             ) : (
               <div className="h-16 w-16 rounded-md bg-stone-900 flex items-center justify-center">
                 <span className="text-xl font-semibold text-white">

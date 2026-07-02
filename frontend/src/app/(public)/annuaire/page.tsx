@@ -9,6 +9,7 @@ import { commerceService } from '@/services/commerce.service';
 import { categorieService } from '@/services/categorie.service';
 import { CommercePhoto } from '@/components/commerces/commerce-photo';
 import MapLeaflet from '@/components/maps/map-leaflet';
+import { filterCommerces } from '@/utils/filter-commerces';
 import type { Commerce, Categorie } from '@/types/commerce';
 
 const cities = ['Toutes', 'Ouagadougou', 'Bobo-Dioulasso', 'Koudougou', 'Banfora', 'Ouahigouya'];
@@ -70,23 +71,24 @@ export default function AnnuairePage() {
     categorieService.getAll().then(setCategories).catch(console.error);
   }, []);
 
-  const filtered = useMemo(() => {
-    return commerces.filter((c) => {
-      if (!c.estPublic) return false;
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase();
-        if (
-          !c.nom.toLowerCase().includes(q) &&
-          !c.description.toLowerCase().includes(q) &&
-          !c.ville.toLowerCase().includes(q)
-        ) return false;
-      }
-      if (selectedCategory && c.categorieId !== selectedCategory) return false;
-      if (selectedCity !== 'Toutes' && c.ville !== selectedCity) return false;
-      if (c.note < minRating) return false;
-      return true;
-    });
-  }, [searchQuery, selectedCategory, selectedCity, minRating]);
+  // Pré-remplit la recherche depuis le paramètre ?q= (redirection depuis la home).
+  // Lecture unique au montage : setState en effet volontaire ici.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get('q');
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (q) setSearchQuery(q);
+  }, []);
+
+  const filtered = useMemo(
+    () =>
+      filterCommerces(commerces, {
+        recherche: searchQuery,
+        categorieId: selectedCategory,
+        ville: selectedCity,
+        noteMin: minRating,
+      }),
+    [commerces, searchQuery, selectedCategory, selectedCity, minRating]
+  );
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const paginated = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);

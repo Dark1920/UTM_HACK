@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase/client';
 import type { User } from '@/types/auth';
+import { apiFetch } from '@/lib/api-client';
 
 const API = '/api/auth';
 
@@ -19,25 +20,19 @@ function toUser(raw: Record<string, unknown>): User {
 
 export const authService = {
   async login(email: string, password: string) {
-    const res = await fetch(`${API}/connexion`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Erreur de connexion');
-    return { user: toUser(data.user), token: (data.token as string) || '' };
+    const data = await apiFetch<{ user: Record<string, unknown>; token?: string }>(
+      `${API}/connexion`,
+      { method: 'POST', body: { email, password } }
+    );
+    return { user: toUser(data.user), token: data.token || '' };
   },
 
   async register(data: { email: string; password: string; nom: string; prenom: string; telephone?: string; role?: string }) {
-    const res = await fetch(`${API}/inscription`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error || 'Inscription échouée');
-    return { user: toUser(json.user), token: (json.token as string) || '' };
+    const json = await apiFetch<{ user: Record<string, unknown>; token?: string }>(
+      `${API}/inscription`,
+      { method: 'POST', body: data }
+    );
+    return { user: toUser(json.user), token: json.token || '' };
   },
 
   async logout() {

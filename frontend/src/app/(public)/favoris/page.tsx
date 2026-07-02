@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Heart, Star, MapPin, Trash2 } from 'lucide-react';
+import { Heart, Star, MapPin, Trash2, Loader2 } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
-import { mockCommerces, mockCategories } from '@/lib/mock-data';
 import { CommercePhoto } from '@/components/commerces/commerce-photo';
+import { useFavorites } from '@/hooks/useFavorites';
+import { commerceService } from '@/services/commerce.service';
 import type { Commerce } from '@/types/commerce';
 
 function FavoriteCard({
@@ -15,7 +16,6 @@ function FavoriteCard({
   commerce: Commerce;
   onRemove: (id: string) => void;
 }) {
-  const category = mockCategories.find((c) => c.id === commerce.categorieId);
   return (
     <div className="rounded-lg border border-stone-200 overflow-hidden group hover:border-stone-400 transition-colors">
       <Link href={ROUTES.COMMERCE(commerce.id)}>
@@ -29,7 +29,7 @@ function FavoriteCard({
         </div>
       </Link>
       <div className="p-4">
-        <p className="text-xs font-medium uppercase tracking-wide text-stone-400">{category?.nom}</p>
+        <p className="text-xs font-medium uppercase tracking-wide text-stone-400">{commerce.categorie?.nom}</p>
         <div className="flex items-start justify-between mt-1 gap-2">
           <Link href={ROUTES.COMMERCE(commerce.id)} className="min-w-0">
             <h3 className="font-medium text-stone-900 group-hover:underline truncate">{commerce.nom}</h3>
@@ -38,6 +38,7 @@ function FavoriteCard({
             onClick={() => onRemove(commerce.id)}
             className="p-1.5 text-stone-400 hover:text-error-500 rounded-md transition-colors shrink-0"
             title="Retirer des favoris"
+            aria-label="Retirer des favoris"
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -57,35 +58,38 @@ function FavoriteCard({
 }
 
 export default function FavorisPage() {
-  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
-  const [loaded, setLoaded] = useState(false);
+  const { favoris, toggleFavori } = useFavorites();
+  const [commerces, setCommerces] = useState<Commerce[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  // Résout les IDs favoris (persistés en localStorage) vers de vrais commerces.
   useEffect(() => {
-    const stored = localStorage.getItem('favorites');
-    if (stored) {
-      setFavoriteIds(JSON.parse(stored));
-    } else {
-      setFavoriteIds(['com-1', 'com-2', 'com-7']);
-    }
-    setLoaded(true);
-  }, []);
-
-  const removeFavorite = (id: string) => {
-    const next = favoriteIds.filter((fid) => fid !== id);
-    setFavoriteIds(next);
-    localStorage.setItem('favorites', JSON.stringify(next));
-  };
-
-  const favoriteCommerces = mockCommerces.filter((c) => favoriteIds.includes(c.id));
-
-  if (!loaded) return null;
+    let annule = false;
+    // Reset du chargement quand la liste de favoris change : volontaire.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    Promise.all(favoris.map((id) => commerceService.getById(id)))
+      .then((list) => {
+        if (!annule) setCommerces(list.filter((c): c is Commerce => Boolean(c)));
+      })
+      .finally(() => {
+        if (!annule) setLoading(false);
+      });
+    return () => {
+      annule = true;
+    };
+  }, [favoris]);
 
   return (
     <div className="min-h-screen">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-2xl font-semibold text-stone-900 tracking-tight mb-8">Mes favoris</h1>
 
-        {favoriteCommerces.length === 0 ? (
+        {loading ? (
+          <div className="py-20 flex justify-center">
+            <Loader2 className="h-6 w-6 animate-spin text-stone-400" />
+          </div>
+        ) : commerces.length === 0 ? (
           <div className="text-center py-20 border border-dashed border-stone-300 rounded-lg">
             <Heart className="h-10 w-10 text-stone-300 mx-auto mb-4" />
             <h2 className="text-base font-semibold text-stone-900 mb-1.5">Aucun favori pour le moment</h2>
@@ -101,8 +105,8 @@ export default function FavorisPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {favoriteCommerces.map((commerce) => (
-              <FavoriteCard key={commerce.id} commerce={commerce} onRemove={removeFavorite} />
+            {commerces.map((commerce) => (
+              <FavoriteCard key={commerce.id} commerce={commerce} onRemove={toggleFavori} />
             ))}
           </div>
         )}

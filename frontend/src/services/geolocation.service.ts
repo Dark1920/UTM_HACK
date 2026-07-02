@@ -1,3 +1,5 @@
+import { apiFetch } from '@/lib/api-client';
+
 export interface Coordinates {
   latitude: number;
   longitude: number;
@@ -63,34 +65,38 @@ export const geolocationService = {
 
   // Géocodage (adresse → coordonnées) via le backend /api/geocoding (Nominatim).
   async geocodeAddress(address: string, city?: string): Promise<GeocodingResult | null> {
-    const params = new URLSearchParams({ address });
-    if (city) params.set('city', city);
-    const res = await fetch(`/api/geocoding?${params.toString()}`);
-    if (!res.ok) return null;
-    const data = await res.json();
-    if (!data.found || !data.primary) return null;
-    return {
-      displayName: data.primary.display_name,
-      latitude: data.primary.latitude,
-      longitude: data.primary.longitude,
-    };
+    try {
+      const data = await apiFetch<{ found: boolean; primary?: { display_name: string; latitude: number; longitude: number } }>(
+        '/api/geocoding',
+        { query: { address, city } }
+      );
+      if (!data.found || !data.primary) return null;
+      return {
+        displayName: data.primary.display_name,
+        latitude: data.primary.latitude,
+        longitude: data.primary.longitude,
+      };
+    } catch {
+      return null;
+    }
   },
 
   // Géocodage inverse (coordonnées → adresse) via le backend /api/geocoding.
   async reverseGeocode(latitude: number, longitude: number): Promise<GeocodingResult | null> {
-    const res = await fetch('/api/geocoding', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ latitude, longitude }),
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    if (!data.found) return null;
-    return {
-      displayName: data.display_name,
-      latitude: data.latitude,
-      longitude: data.longitude,
-    };
+    try {
+      const data = await apiFetch<{ found: boolean; display_name: string; latitude: number; longitude: number }>(
+        '/api/geocoding',
+        { method: 'POST', body: { latitude, longitude } }
+      );
+      if (!data.found) return null;
+      return {
+        displayName: data.display_name,
+        latitude: data.latitude,
+        longitude: data.longitude,
+      };
+    } catch {
+      return null;
+    }
   },
 
   calculateDistance(from: Coordinates, to: Coordinates): number {
